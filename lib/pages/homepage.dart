@@ -1,38 +1,79 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:aicaremanagermob/providers/counter_provider.dart';
+import 'package:flutter/cupertino.dart';
 
-class HomePage extends ConsumerWidget {
+import 'dashboard.dart';
+import 'schedule.dart';
+import 'reports.dart';
+import 'billing.dart';
+import 'profile.dart';
+
+final List<String> tabTitles = [
+  'Dashboard',
+  'Schedule',
+  'Reports',
+  'Billing',
+  'Profile',
+];
+
+class HomePage extends StatefulWidget {
+  static const String routeName = '/home';
   const HomePage({super.key});
 
-  static const String routeName = '/home';
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final counter = ref.watch(counterProvider);
-
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('Home Page'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+  Widget build(BuildContext context) {
+    return CupertinoTabScaffold(
+      tabBar: CupertinoTabBar(
+        activeColor: CupertinoColors.activeBlue,
+        inactiveColor: CupertinoColors.systemGrey,
+        backgroundColor: CupertinoColors.systemBackground,
+        border: const Border(
+          top: BorderSide(
+            color: CupertinoColors.systemGrey4,
+            width: 0.2,
+          ),
         ),
+        items: [
+          _buildTabBarItem(CupertinoIcons.home, CupertinoIcons.home, tabTitles[0]),
+          _buildTabBarItem(CupertinoIcons.calendar, CupertinoIcons.calendar, tabTitles[1]),
+          _buildTabBarItem(CupertinoIcons.chart_bar, CupertinoIcons.chart_bar, tabTitles[2]),
+          _buildTabBarItem(CupertinoIcons.creditcard, CupertinoIcons.creditcard_fill, tabTitles[3]),
+          _buildTabBarItem(CupertinoIcons.person, CupertinoIcons.person_fill, tabTitles[4]),
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => ref.read(counterProvider.notifier).increment(),
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
+      tabBuilder: (BuildContext context, int index) {
+        return CupertinoTabView(
+          builder: (context) {
+            return _buildTabContent(index);
+          },
+        );
+      },
     );
   }
+
+  BottomNavigationBarItem _buildTabBarItem(IconData icon, IconData activeIcon, String label) {
+    return BottomNavigationBarItem(
+      icon: Icon(icon, color: CupertinoColors.inactiveGray, size: 20),
+      activeIcon: Icon(activeIcon, color: CupertinoColors.activeBlue, size: 20),
+      label: label,
+    );
+  }
+
+  Widget _buildTabContent(int index) {
+    final pages = [
+      const DashboardPage(),
+      const SchedulePage(),
+      const ReportsPage(),
+      const BillingPage(),
+      const ProfilePage(),
+    ];
+
+    return pages[index];
+  }
 }
+
+

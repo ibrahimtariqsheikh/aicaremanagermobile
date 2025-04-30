@@ -117,7 +117,7 @@ abstract class AppTheme {
         primaryColor: _LightColors.logo,
         visualDensity: visualDensity,
         colorScheme: ColorScheme.light(
-          background: _LightColors.background,
+          surface: _LightColors.background,
           primary: _LightColors.logo,
           secondary: _LightColors.socialButton['background'] as Color,
           secondaryContainer: _LightColors.socialButton['border'] as Color,
@@ -168,7 +168,7 @@ abstract class AppTheme {
         brightness: Brightness.dark,
         visualDensity: visualDensity,
         colorScheme: ColorScheme.dark(
-          background: _DarkColors.background,
+          surface: _DarkColors.background,
           primary: _DarkColors.logo,
           secondary: _DarkColors.socialButton['background'] as Color,
           secondaryContainer: _DarkColors.socialButton['border'] as Color,
