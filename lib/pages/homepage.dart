@@ -1,4 +1,8 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:aicaremanagermob/main.dart';
+import 'package:aicaremanagermob/providers/auth_provider.dart';
 
 import 'dashboard.dart';
 import 'schedule.dart';
@@ -14,65 +18,86 @@ final List<String> tabTitles = [
   'Profile',
 ];
 
-class HomePage extends StatefulWidget {
+class HomePage extends ConsumerStatefulWidget {
   static const String routeName = '/home';
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  ConsumerState<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends ConsumerState<HomePage> {
+  // Cache the pages to maintain their state
+  late final List<Widget> _pages;
+  int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    print('HomePage - Initializing...');
+    // Initialize pages with ProviderScope to ensure they have access to providers
+    _pages = [
+      const ProviderScope(child: DashboardPage()),
+      const ProviderScope(child: SchedulePage()),
+      const ProviderScope(child: ReportsPage()),
+      const ProviderScope(child: BillingPage()),
+      const ProviderScope(child: ProfilePage()),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
+    print('HomePage - Building...');
+    final themeMode = ref.watch(themeProvider);
+    final isDark = themeMode == ThemeMode.dark;
+    
+    // Watch auth state
+    final authState = ref.watch(authProvider);
+    print('HomePage - Current Auth State: $authState');
+    
     return CupertinoTabScaffold(
       tabBar: CupertinoTabBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          print('HomePage - Tab changed to: $index');
+          setState(() {
+            _currentIndex = index;
+          });
+        },
         activeColor: CupertinoColors.activeBlue,
         inactiveColor: CupertinoColors.systemGrey,
-        backgroundColor: CupertinoColors.systemBackground,
-        border: const Border(
+        backgroundColor: isDark ? CupertinoColors.darkBackgroundGray : CupertinoColors.systemBackground,
+        border: Border(
           top: BorderSide(
-            color: CupertinoColors.systemGrey4,
+            color: isDark ? CupertinoColors.systemGrey.darkColor : CupertinoColors.systemGrey4,
             width: 0.2,
           ),
         ),
         items: [
-          _buildTabBarItem(CupertinoIcons.home, CupertinoIcons.home, tabTitles[0]),
-          _buildTabBarItem(CupertinoIcons.calendar, CupertinoIcons.calendar, tabTitles[1]),
-          _buildTabBarItem(CupertinoIcons.chart_bar, CupertinoIcons.chart_bar, tabTitles[2]),
-          _buildTabBarItem(CupertinoIcons.creditcard, CupertinoIcons.creditcard_fill, tabTitles[3]),
-          _buildTabBarItem(CupertinoIcons.person, CupertinoIcons.person_fill, tabTitles[4]),
+          _buildTabBarItem(CupertinoIcons.home, CupertinoIcons.home, tabTitles[0], isDark),
+          _buildTabBarItem(CupertinoIcons.calendar, CupertinoIcons.calendar, tabTitles[1], isDark),
+          _buildTabBarItem(CupertinoIcons.chart_bar, CupertinoIcons.chart_bar, tabTitles[2], isDark),
+          _buildTabBarItem(CupertinoIcons.creditcard, CupertinoIcons.creditcard_fill, tabTitles[3], isDark),
+          _buildTabBarItem(CupertinoIcons.person, CupertinoIcons.person_fill, tabTitles[4], isDark),
         ],
       ),
       tabBuilder: (BuildContext context, int index) {
+        print('HomePage - Building tab: $index');
         return CupertinoTabView(
           builder: (context) {
-            return _buildTabContent(index);
+            return _pages[index];
           },
         );
       },
     );
   }
 
-  BottomNavigationBarItem _buildTabBarItem(IconData icon, IconData activeIcon, String label) {
+  BottomNavigationBarItem _buildTabBarItem(IconData icon, IconData activeIcon, String label, bool isDark) {
     return BottomNavigationBarItem(
-      icon: Icon(icon, color: CupertinoColors.inactiveGray, size: 20),
+      icon: Icon(icon, color: isDark ? CupertinoColors.systemGrey : CupertinoColors.inactiveGray, size: 20),
       activeIcon: Icon(activeIcon, color: CupertinoColors.activeBlue, size: 20),
       label: label,
     );
-  }
-
-  Widget _buildTabContent(int index) {
-    final pages = [
-      const DashboardPage(),
-      const SchedulePage(),
-      const ReportsPage(),
-      const BillingPage(),
-      const ProfilePage(),
-    ];
-
-    return pages[index];
   }
 }
 

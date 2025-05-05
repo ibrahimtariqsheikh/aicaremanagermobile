@@ -37,9 +37,13 @@ dependencies:
   google_fonts: ^6.2.1
   flutter_riverpod: ^2.4.9
   riverpod_annotation: ^2.6.1
-  amplify_flutter: ^1.4.0
-  amplify_auth_cognito: ^1.4.0
-  amplify_authenticator: ^1.4.0
+  amplify_flutter: ^2.6.1
+  amplify_auth_cognito: ^2.6.1
+  amplify_authenticator: ^2.3.3
+  flutter_dotenv: ^5.2.1
+  http: ^1.2.0
+  equatable: ^2.0.7
+  intl: ^0.19.0
 
 dev_dependencies:
   flutter_test:
@@ -50,7 +54,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^2.0.0
+  flutter_lints: ^5.0.0
   riverpod_generator: ^2.6.5
   build_runner: ^2.4.15
   custom_lint: ^0.7.5
@@ -97,3 +101,6 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+  assets:
+    - .env

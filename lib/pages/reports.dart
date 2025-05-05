@@ -1,13 +1,27 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:aicaremanagermob/providers/auth_provider.dart';
 
-class ReportsPage extends StatelessWidget {
+class ReportsPage extends ConsumerWidget {
   const ReportsPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Using const for the entire widget tree to optimize performance
-    // and prevent yellow lines from Flutter's performance warnings
-    return const CupertinoPageScaffold(
+  Widget build(BuildContext context, WidgetRef ref) {
+    print('Reports Page - Building...');
+    
+    // Watch the entire auth state
+    final authState = ref.watch(authProvider);
+    print('Reports Page - Full Auth State: $authState');
+    
+    // Watch the user specifically
+    final user = ref.watch(authProvider.select((state) => state.user));
+    print('Reports Page - User from select: $user');
+    
+    // Watch the fullName specifically
+    final fullName = ref.watch(authProvider.select((state) => state.user.fullName));
+    print('Reports Page - Full Name from select: $fullName');
+    
+    return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         middle: Text(
           'Reports',
@@ -24,7 +38,6 @@ class ReportsPage extends StatelessWidget {
           onPressed: null,
         ),
       ),
-
       child: DefaultTextStyle(
         style: const TextStyle(
           decoration: TextDecoration.none,
@@ -32,15 +45,20 @@ class ReportsPage extends StatelessWidget {
         ),
         child: SafeArea(
           child: Center(
-            child: Text(
-              'Reports Page',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: CupertinoColors.black,
-                fontSize: 15,
-             
-                decoration: TextDecoration.none,
-              ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Reports',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: CupertinoColors.black,
+                    fontSize: 15,
+                    decoration: TextDecoration.none,
+                  ),
+                ),
+
+              ],
             ),
           ),
         ),
