@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:aicaremanagermob/configs/amplify_config.dart';
 import 'package:aicaremanagermob/configs/app_theme.dart';
 import 'package:aicaremanagermob/configs/build_routes.dart';

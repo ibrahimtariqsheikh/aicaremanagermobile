@@ -1,20 +1,22 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:aicaremanagermob/main.dart';
 import 'package:aicaremanagermob/providers/auth_provider.dart';
 
-import 'dashboard.dart';
+import 'message.dart';
 import 'schedule.dart';
 import 'reports.dart';
-import 'billing.dart';
+import 'careai.dart';
 import 'profile.dart';
 
 final List<String> tabTitles = [
-  'Dashboard',
   'Schedule',
   'Reports',
-  'Billing',
+  'Messages',
+  'Care AI',
   'Profile',
 ];
 
@@ -34,32 +36,31 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   void initState() {
     super.initState();
-    print('HomePage - Initializing...');
-    // Initialize pages with ProviderScope to ensure they have access to providers
+   
     _pages = [
-      const ProviderScope(child: DashboardPage()),
+  
       const ProviderScope(child: SchedulePage()),
       const ProviderScope(child: ReportsPage()),
-      const ProviderScope(child: BillingPage()),
+      const ProviderScope(child: MessagePage()),
+      const ProviderScope(child: CareAiPage(id: 'ibbi', email: 'ibbi@gmail.com')),
       const ProviderScope(child: ProfilePage()),
     ];
   }
 
   @override
   Widget build(BuildContext context) {
-    print('HomePage - Building...');
+
     final themeMode = ref.watch(themeProvider);
     final isDark = themeMode == ThemeMode.dark;
     
     // Watch auth state
-    final authState = ref.watch(authProvider);
-    print('HomePage - Current Auth State: $authState');
+    ref.watch(authProvider);
+    
     
     return CupertinoTabScaffold(
       tabBar: CupertinoTabBar(
         currentIndex: _currentIndex,
         onTap: (index) {
-          print('HomePage - Tab changed to: $index');
           setState(() {
             _currentIndex = index;
           });
@@ -74,15 +75,14 @@ class _HomePageState extends ConsumerState<HomePage> {
           ),
         ),
         items: [
-          _buildTabBarItem(CupertinoIcons.home, CupertinoIcons.home, tabTitles[0], isDark),
-          _buildTabBarItem(CupertinoIcons.calendar, CupertinoIcons.calendar, tabTitles[1], isDark),
-          _buildTabBarItem(CupertinoIcons.chart_bar, CupertinoIcons.chart_bar, tabTitles[2], isDark),
-          _buildTabBarItem(CupertinoIcons.creditcard, CupertinoIcons.creditcard_fill, tabTitles[3], isDark),
-          _buildTabBarItem(CupertinoIcons.person, CupertinoIcons.person_fill, tabTitles[4], isDark),
+          _buildTabBarItem(CupertinoIcons.calendar, CupertinoIcons.calendar, tabTitles[0], isDark),
+          _buildTabBarItem(CupertinoIcons.chart_bar, CupertinoIcons.chart_bar, tabTitles[1], isDark),
+          _buildTabBarItem(CupertinoIcons.chat_bubble_text, CupertinoIcons.chat_bubble_text, tabTitles[2], isDark),
+          _buildTabBarItem(CupertinoIcons.circle_grid_3x3, CupertinoIcons.circle_grid_3x3, tabTitles[3], isDark),
+          _buildTabBarItem(CupertinoIcons.person, CupertinoIcons.person, tabTitles[4], isDark),
         ],
       ),
       tabBuilder: (BuildContext context, int index) {
-        print('HomePage - Building tab: $index');
         return CupertinoTabView(
           builder: (context) {
             return _pages[index];

@@ -1,7 +1,5 @@
 import 'package:aicaremanagermob/models/schedule.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:amplify_flutter/amplify_flutter.dart';
 //  import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -47,11 +45,6 @@ class AuthState extends Equatable {
     User? user,
     List<Schedule>? schedules,
   }) {
-    print('AuthState - Creating new state with:');
-    print('  isLoading: ${isLoading ?? this.isLoading}');
-    print('  error: ${error ?? this.error}');
-    print('  user: ${user ?? this.user}');
-    print('  schedules: ${schedules ?? this.schedules}');
     
     return AuthState(
       isLoading: isLoading ?? this.isLoading,
@@ -62,12 +55,11 @@ class AuthState extends Equatable {
   }
 
   factory AuthState.initial() {
-    print('AuthState - Creating initial state with default user');
     return AuthState(
       isLoading: false,
       error: null,
       user: _defaultUser,
-      schedules: [],
+      schedules: const [],
     );
   }
 }
@@ -81,7 +73,6 @@ class Auth extends _$Auth {
 
   Future<String> signIn() async {
     try {
-      print('Auth - Starting sign in...');
       state = state.copyWith(isLoading: true);
       
       final response = await http.get(
@@ -120,7 +111,6 @@ class Auth extends _$Auth {
         return "failedToSignIn";
       }
     } catch (e) {
-      print('Auth - Error during sign in: $e');
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
@@ -130,7 +120,6 @@ class Auth extends _$Auth {
   }
 
   void signOut() {
-    print('Auth - Signing out, resetting to initial state');
     state = AuthState.initial();
   }
 }

@@ -45,7 +45,7 @@ class _SignInPageState extends State<SignInPage> {
                   child: const Text('Sign In'),
                 ),
                 const SizedBox(height: 20),
-                Text(
+                const Text(
                   'Debug Info:',
                   style: TextStyle(
                     color: Colors.grey,
@@ -54,7 +54,7 @@ class _SignInPageState extends State<SignInPage> {
                 ),
                 Text(
                   'Current User: ${authState.user.fullName}',
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.grey,
                     fontSize: 12,
                   ),

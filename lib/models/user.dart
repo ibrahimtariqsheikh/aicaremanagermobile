@@ -186,8 +186,6 @@ class User extends Equatable {
   }
 
   factory User.fromJson(Map<String, dynamic> json) {
-    print('User.fromJson - Input json: $json');
-    print('User.fromJson - fullName from json: ${json['fullName']}');
     
     final user = User(
       id: json['id'] as String,
@@ -228,8 +226,6 @@ class User extends Equatable {
       history: json['history'] as String?,
     );
     
-    print('User.fromJson - Created user: $user');
-    print('User.fromJson - Created user fullName: ${user.fullName}');
     return user;
   }
 

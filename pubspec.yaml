@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.3.0 <4.0.0'
+  sdk: '>=3.2.3 <4.0.0'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -44,6 +44,12 @@ dependencies:
   http: ^1.2.0
   equatable: ^2.0.7
   intl: ^0.19.0
+  web_socket_channel: ^2.4.0
+  dash_chat_2: ^0.0.8
+  font_awesome_flutter: ^10.7.0
+  socket_io_client: ^2.0.3+1
+  cached_network_image: ^3.3.1
+  lucide_icons: ^0.257.0
 
 dev_dependencies:
   flutter_test:
@@ -54,7 +60,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
+  flutter_lints: ^2.0.0
   riverpod_generator: ^2.6.5
   build_runner: ^2.4.15
   custom_lint: ^0.7.5
@@ -104,3 +110,4 @@ flutter:
 
   assets:
     - .env
+    - assets/images/
