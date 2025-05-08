@@ -32,4 +32,4 @@ class SocketHandler {
   void sendMessage(String message) {
     socket.emit('message', message);
   }
-} 
+}

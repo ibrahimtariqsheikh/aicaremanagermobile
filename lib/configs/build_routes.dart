@@ -1,7 +1,6 @@
 import 'package:aicaremanagermob/pages/homepage.dart';
 import 'package:flutter/cupertino.dart';
 
-
 Route<dynamic> buildRoutes(RouteSettings settings) {
   WidgetBuilder builder;
   switch (settings.name) {

@@ -91,33 +91,33 @@ class User extends Equatable {
 
   @override
   List<Object?> get props => [
-    id,
-    cognitoId,
-    email,
-    fullName,
-    preferredName,
-    role,
-    subRole,
-    createdAt,
-    updatedAt,
-    agencyId,
-    invitedById,
-    address,
-    city,
-    province,
-    postalCode,
-    propertyAccess,
-    phoneNumber,
-    nhsNumber,
-    dnraOrder,
-    mobility,
-    likesDislikes,
-    dateOfBirth,
-    languages,
-    allergies,
-    interests,
-    history,
-  ];
+        id,
+        cognitoId,
+        email,
+        fullName,
+        preferredName,
+        role,
+        subRole,
+        createdAt,
+        updatedAt,
+        agencyId,
+        invitedById,
+        address,
+        city,
+        province,
+        postalCode,
+        propertyAccess,
+        phoneNumber,
+        nhsNumber,
+        dnraOrder,
+        mobility,
+        likesDislikes,
+        dateOfBirth,
+        languages,
+        allergies,
+        interests,
+        history,
+      ];
 
   @override
   bool get stringify => true;
@@ -186,7 +186,6 @@ class User extends Equatable {
   }
 
   factory User.fromJson(Map<String, dynamic> json) {
-    
     final user = User(
       id: json['id'] as String,
       cognitoId: json['cognitoId'] as String,
@@ -199,7 +198,8 @@ class User extends Equatable {
       ),
       subRole: json['subRole'] != null
           ? SubRole.values.firstWhere(
-              (e) => e.toString().split('.').last.toUpperCase() == json['subRole'],
+              (e) =>
+                  e.toString().split('.').last.toUpperCase() == json['subRole'],
               orElse: () => SubRole.other,
             )
           : null,
@@ -225,7 +225,7 @@ class User extends Equatable {
       interests: json['interests'] as String?,
       history: json['history'] as String?,
     );
-    
+
     return user;
   }
 
@@ -259,4 +259,4 @@ class User extends Equatable {
       'history': history,
     };
   }
-} 
+}

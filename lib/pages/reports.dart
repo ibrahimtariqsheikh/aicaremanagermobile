@@ -1,11 +1,94 @@
-// ignore_for_file: avoid_print
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:aicaremanagermob/widgets/custom_card.dart';
-import 'package:aicaremanagermob/pages/visit_report_details.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'report_details.dart';
+
+// Simple Report model based on completed schedules
+class Report {
+  final String id;
+  final String clientName;
+  final DateTime date;
+  final String visitType;
+  final String duration;
+  final String status;
+  final String? notes;
+  final String? address;
+
+  Report({
+    required this.id,
+    required this.clientName,
+    required this.date,
+    required this.visitType,
+    required this.duration,
+    required this.status,
+    this.notes,
+    this.address,
+  });
+}
+
+// Sample reports provider
+final reportsProvider = StateProvider<List<Report>>((ref) {
+  // This would normally be loaded from an API
+  return [
+    Report(
+      id: '1',
+      clientName: 'Maria Johnson',
+      date: DateTime.now().subtract(const Duration(days: 1)),
+      visitType: 'HOME_VISIT',
+      duration: '1h 15m',
+      status: 'COMPLETED',
+      notes:
+          'Client is showing improvement in mobility. Medication adherence is good.',
+      address: '123 Main St, Apt 4B, New York, NY 10001',
+    ),
+    Report(
+      id: '2',
+      clientName: 'Robert Smith',
+      date: DateTime.now().subtract(const Duration(days: 2)),
+      visitType: 'WEEKLY_CHECKUP',
+      duration: '45m',
+      status: 'COMPLETED',
+      notes: 'Blood pressure readings normal. Exercise plan updated.',
+      address: '456 Park Ave, New York, NY 10022',
+    ),
+    Report(
+      id: '3',
+      clientName: 'Eliza Rodriguez',
+      date: DateTime.now().subtract(const Duration(days: 3)),
+      visitType: 'EMERGENCY',
+      duration: '2h 05m',
+      status: 'COMPLETED',
+      notes: 'Fall incident. No serious injuries but will need follow-up.',
+      address: '789 Broadway, New York, NY 10003',
+    ),
+    Report(
+      id: '4',
+      clientName: 'James Wilson',
+      date: DateTime.now().subtract(const Duration(days: 4)),
+      visitType: 'HOME_VISIT',
+      duration: '1h 30m',
+      status: 'COMPLETED',
+      notes:
+          'Medication review completed. Added new prescription for hypertension.',
+      address: '321 1st Ave, New York, NY 10009',
+    ),
+    Report(
+      id: '5',
+      clientName: 'Emma Davis',
+      date: DateTime.now().subtract(const Duration(days: 5)),
+      visitType: 'ROUTINE',
+      duration: '1h',
+      status: 'COMPLETED',
+      notes: 'Vital signs stable. Discussed nutrition plan.',
+      address: '654 5th Ave, New York, NY 10022',
+    ),
+  ];
+});
+
+// Filter options
+enum ReportFilter { recent, thisWeek, lastWeek, thisMonth }
 
 class ReportsPage extends ConsumerStatefulWidget {
   const ReportsPage({super.key});
@@ -15,237 +98,135 @@ class ReportsPage extends ConsumerStatefulWidget {
 }
 
 class _ReportsPageState extends ConsumerState<ReportsPage> {
-  String _selectedPeriod = 'This Month';
-  final List<String> _periods = ['This Week', 'This Month', 'Last Month', 'This Year'];
-
-  // Dummy data for completed visits
-  final List<Map<String, dynamic>> _completedVisits = [
-    {
-      'clientName': 'John Smith',
-      'date': DateTime.now().subtract(const Duration(days: 1)),
-      'type': 'Home Visit',
-      'duration': '1h 30m',
-      'mood': 'Good',
-      'healthStatus': 'Stable',
-      'notes': 'Regular check-up completed. Client is doing well with their medication routine.',
-    },
-    {
-      'clientName': 'Mary Johnson',
-      'date': DateTime.now().subtract(const Duration(days: 2)),
-      'type': 'Office Appointment',
-      'duration': '45m',
-      'mood': 'Excellent',
-      'healthStatus': 'Improving',
-      'notes': 'Follow-up appointment. Client reported significant improvement in mobility.',
-    },
-    {
-      'clientName': 'Robert Brown',
-      'date': DateTime.now().subtract(const Duration(days: 3)),
-      'type': 'Home Visit',
-      'duration': '2h 15m',
-      'mood': 'Fair',
-      'healthStatus': 'Stable',
-      'notes': 'Extended visit due to medication review. Client needs additional support with daily activities.',
-    },
-  ];
+  ReportFilter _selectedFilter = ReportFilter.recent;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
-    return CupertinoPageScaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      navigationBar: CupertinoNavigationBar(
-        backgroundColor: theme.cardColor.withValues(alpha: 0.9),
-        border: null,
-        middle: Text(
+    final reports = ref.watch(reportsProvider);
+
+    // Filter reports based on selected filter
+    final List<Report> filteredReports = _filterReports(reports);
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: Text(
           'Visit Reports',
-          style: theme.textTheme.bodyMedium,
-        ),
-        trailing: CupertinoButton(
-          padding: EdgeInsets.zero,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(CupertinoIcons.calendar, size: 16, color: theme.colorScheme.primary),
-              const SizedBox(width: 4),
-              Text(
-                _selectedPeriod,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.primary,
-                ),
-              ),
-            ],
+          style: GoogleFonts.inter(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
           ),
-          onPressed: () {
-            _showPeriodPicker();
-          },
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(CupertinoIcons.search,
+                size: 20, color: Colors.black54),
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: const Icon(CupertinoIcons.ellipsis_circle,
+                size: 20, color: Colors.black54),
+            onPressed: () {},
+          ),
+        ],
       ),
-      child: SafeArea(
-        child: CupertinoScrollbar(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 5),
-            itemCount: _completedVisits.length,
-            itemBuilder: (context, index) {
-              final visit = _completedVisits[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: _buildVisitListItem(visit),
-              );
-            },
+      body: Column(
+        children: [
+          _buildFilterBar(),
+          Expanded(
+            child: filteredReports.isEmpty
+                ? _buildEmptyState()
+                : _buildReportsList(filteredReports),
           ),
-        ),
+        ],
       ),
     );
   }
 
-  Widget _buildVisitListItem(Map<String, dynamic> visit) {
-    final theme = Theme.of(context);
-    final dateFormat = DateFormat('MMM d');
-    final timeFormat = DateFormat('h:mm a');
-    
+  Widget _buildFilterBar() {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildFilterChip(ReportFilter.recent, 'Recent'),
+                const SizedBox(width: 8),
+                _buildFilterChip(ReportFilter.thisWeek, 'This Week'),
+                const SizedBox(width: 8),
+                _buildFilterChip(ReportFilter.lastWeek, 'Last Week'),
+                const SizedBox(width: 8),
+                _buildFilterChip(ReportFilter.thisMonth, 'This Month'),
+              ],
+            ),
+          ),
+        ),
+        const Divider(height: 1, color: Colors.black12, thickness: 0.3),
+      ],
+    );
+  }
+
+  Widget _buildFilterChip(ReportFilter filter, String label) {
+    final isSelected = _selectedFilter == filter;
+
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          CupertinoPageRoute(
-            builder: (context) => VisitReportDetails(visit: visit),
-          ),
-        );
+        setState(() {
+          _selectedFilter = filter;
+        });
       },
-      child: CustomCard(
-        hasShadow: false,
-        child: Padding(
-          padding: const EdgeInsets.all(4),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(22),
-                ),
-                child: Center(
-                  child: Text(
-                    _getInitials(visit['clientName']),
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-            
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            visit['clientName'],
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            visit['type'],
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.primary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(
-                          CupertinoIcons.clock,
-                          size: 12,
-                          color: theme.colorScheme.onTertiary,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${dateFormat.format(visit['date'])} at ${timeFormat.format(visit['date'])} • ${visit['duration']}',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onTertiary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        _buildStatusChip(
-                          theme,
-                          icon: CupertinoIcons.heart_circle,
-                          label: visit['mood'],
-                          color: _getMoodColor(visit['mood']),
-                        ),
-                        const SizedBox(width: 8),
-                        _buildStatusChip(
-                          theme,
-                          icon: CupertinoIcons.heart,
-                          label: visit['healthStatus'],
-                          color: _getHealthStatusColor(visit['healthStatus']),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              // Chevron
-              Icon(
-                CupertinoIcons.chevron_right,
-                size: 16,
-                color: theme.colorScheme.onTertiary,
-              ),
-            ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? CupertinoColors.systemBlue : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color:
+                isSelected ? CupertinoColors.systemBlue : Colors.grey.shade300,
+            width: 0.5,
+          ),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+            color: isSelected ? Colors.white : Colors.black54,
           ),
         ),
       ),
     );
   }
 
-  Widget _buildStatusChip(ThemeData theme, {
-    required IconData icon,
-    required String label,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            icon,
-            size: 12,
-            color: color,
+            CupertinoIcons.doc_text,
+            size: 60,
+            color: Colors.grey[300],
           ),
-          const SizedBox(width: 4),
+          const SizedBox(height: 16),
           Text(
-            label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w500,
+            'No reports found',
+            style: GoogleFonts.inter(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Complete visits to generate reports',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: Colors.grey[500],
             ),
           ),
         ],
@@ -253,85 +234,259 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
     );
   }
 
-  Color _getMoodColor(String mood) {
-    switch (mood.toLowerCase()) {
-      case 'excellent':
-        return Colors.green;
-      case 'good':
-        return Colors.blue;
-      case 'fair':
-        return Colors.orange;
-      case 'poor':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
+  Widget _buildReportsList(List<Report> reports) {
+    return ListView.builder(
+      itemCount: reports.length,
+      itemBuilder: (context, index) {
+        final report = reports[index];
+        return _buildReportItem(report);
+      },
+    );
   }
 
-  Color _getHealthStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'improving':
-        return Colors.green;
-      case 'stable':
-        return Colors.blue;
-      case 'declining':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  String _getInitials(String fullName) {
-    if (fullName.isEmpty) return '';
-    
-    final nameParts = fullName.split(' ');
-    if (nameParts.length > 1) {
-      return '${nameParts[0][0]}${nameParts[1][0]}'.toUpperCase();
-    }
-    return fullName[0].toUpperCase();
-  }
-
-  void _showPeriodPicker() {
-    showCupertinoModalPopup(
-      context: context,
-      builder: (BuildContext context) {
-        return Container(
-          height: 200,
-          color: CupertinoColors.systemBackground,
-          child: SafeArea(
-            child: Column(
+  Widget _buildReportItem(Report report) {
+    return GestureDetector(
+      onTap: () {
+        _navigateToReportDetails(report);
+      },
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    CupertinoButton(
-                      child: const Text('Cancel'),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                    CupertinoButton(
-                      child: const Text('Done'),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
+                Container(
+                  margin: const EdgeInsets.only(top: 2),
+                  width: 26,
+                  height: 26,
+                  decoration: BoxDecoration(
+                    color: _getStatusBackgroundColor(report.status),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    _getVisitTypeIcon(report.visitType),
+                    size: 16,
+                    color: _getStatusColor(report.status),
+                  ),
                 ),
+                const SizedBox(width: 12),
                 Expanded(
-                  child: CupertinoPicker(
-                    itemExtent: 32,
-                    onSelectedItemChanged: (int index) {
-                      setState(() {
-                        _selectedPeriod = _periods[index];
-                      });
-                    },
-                    children: _periods.map((String period) {
-                      return Center(child: Text(period));
-                    }).toList(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            DateFormat('MMM d, yyyy').format(report.date),
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: Colors.black54,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Text(' • ',
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: Colors.black54,
+                                fontWeight: FontWeight.w500,
+                              )),
+                          Text(
+                            report.duration,
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: Colors.black54,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        report.clientName,
+                        style: GoogleFonts.inter(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      if (report.address != null) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Icon(CupertinoIcons.location,
+                                size: 14, color: Colors.black54),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                report.address!,
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  color: Colors.black54,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: _getVisitTypeBackgroundColor(report.visitType),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    _formatVisitType(report.visitType),
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: _getVisitTypeColor(report.visitType),
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-        );
-      },
+          const Divider(height: 1, color: Colors.black12, thickness: 0.3),
+        ],
+      ),
     );
+  }
+
+  void _navigateToReportDetails(Report report) {
+    Navigator.push(
+      context,
+      CupertinoPageRoute(
+        builder: (context) => ReportDetailsPage(report: report),
+      ),
+    );
+  }
+
+  List<Report> _filterReports(List<Report> reports) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    switch (_selectedFilter) {
+      case ReportFilter.recent:
+        return reports.take(5).toList();
+      case ReportFilter.thisWeek:
+        final startOfWeek = today.subtract(Duration(days: today.weekday - 1));
+        return reports
+            .where((report) => report.date.isAfter(startOfWeek))
+            .toList();
+      case ReportFilter.lastWeek:
+        final startOfLastWeek =
+            today.subtract(Duration(days: today.weekday + 6));
+        final endOfLastWeek = today.subtract(Duration(days: today.weekday));
+        return reports
+            .where((report) =>
+                report.date.isAfter(startOfLastWeek) &&
+                report.date.isBefore(endOfLastWeek))
+            .toList();
+      case ReportFilter.thisMonth:
+        final startOfMonth = DateTime(now.year, now.month, 1);
+        return reports
+            .where((report) => report.date.isAfter(startOfMonth))
+            .toList();
+    }
+  }
+
+  String _formatVisitType(String visitType) {
+    return visitType
+        .replaceAll('_', ' ')
+        .split(' ')
+        .map((word) => word[0].toUpperCase() + word.substring(1).toLowerCase())
+        .join(' ');
+  }
+
+  IconData _getVisitTypeIcon(String visitType) {
+    switch (visitType.toUpperCase()) {
+      case 'HOME_VISIT':
+        return CupertinoIcons.home;
+      case 'APPOINTMENT':
+        return CupertinoIcons.calendar;
+      case 'WEEKLY_CHECKUP':
+        return CupertinoIcons.chart_bar;
+      case 'CHECKUP':
+        return CupertinoIcons.doc_checkmark;
+      case 'EMERGENCY':
+        return CupertinoIcons.exclamationmark_triangle;
+      case 'ROUTINE':
+        return CupertinoIcons.repeat;
+      default:
+        return CupertinoIcons.doc_text;
+    }
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toUpperCase()) {
+      case 'COMPLETED':
+        return const Color(0xFF2196F3); // Material Blue
+      case 'CANCELED':
+        return const Color(0xFFE53935); // Material Red
+      case 'PENDING':
+        return const Color(0xFF2196F3); // Material Blue
+      case 'CONFIRMED':
+        return const Color(0xFF2196F3); // Material Blue
+      default:
+        return const Color(0xFF2196F3); // Material Blue
+    }
+  }
+
+  Color _getStatusBackgroundColor(String status) {
+    switch (status.toUpperCase()) {
+      case 'COMPLETED':
+        return const Color(0xFFE3F2FD); // Light Blue
+      case 'CANCELED':
+        return const Color(0xFFFFEBEE); // Light Red
+      case 'PENDING':
+        return const Color(0xFFE3F2FD); // Light Blue
+      case 'CONFIRMED':
+        return const Color(0xFFE3F2FD); // Light Blue
+      default:
+        return const Color(0xFFE3F2FD); // Light Blue
+    }
+  }
+
+  Color _getVisitTypeColor(String visitType) {
+    switch (visitType.toUpperCase()) {
+      case 'HOME_VISIT':
+        return const Color(0xFF4CAF50); // Material Green
+      case 'APPOINTMENT':
+        return const Color(0xFF9C27B0); // Material Purple
+      case 'WEEKLY_CHECKUP':
+        return const Color(0xFF2196F3); // Material Blue
+      case 'CHECKUP':
+        return const Color(0xFF00BCD4); // Material Cyan
+      case 'EMERGENCY':
+        return const Color(0xFFE53935); // Material Red
+      case 'ROUTINE':
+        return const Color(0xFFFF9800); // Material Orange
+      default:
+        return const Color(0xFF2196F3); // Material Blue
+    }
+  }
+
+  Color _getVisitTypeBackgroundColor(String visitType) {
+    switch (visitType.toUpperCase()) {
+      case 'HOME_VISIT':
+        return const Color(0xFFE8F5E9); // Light Green
+      case 'APPOINTMENT':
+        return const Color(0xFFF3E5F5); // Light Purple
+      case 'WEEKLY_CHECKUP':
+        return const Color(0xFFE3F2FD); // Light Blue
+      case 'CHECKUP':
+        return const Color(0xFFE0F7FA); // Light Cyan
+      case 'EMERGENCY':
+        return const Color(0xFFFFEBEE); // Light Red
+      case 'ROUTINE':
+        return const Color(0xFFFFF3E0); // Light Orange
+      default:
+        return const Color(0xFFE3F2FD); // Light Blue
+    }
   }
 }

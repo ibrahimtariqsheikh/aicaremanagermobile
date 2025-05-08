@@ -18,12 +18,13 @@ class ChatBubble extends StatefulWidget {
   State<ChatBubble> createState() => _ChatBubbleState();
 }
 
-class _ChatBubbleState extends State<ChatBubble> with SingleTickerProviderStateMixin {
+class _ChatBubbleState extends State<ChatBubble>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _slideAnimation;
   bool _showTime = false;
   double _startDragX = 0;
-  double _dragThreshold = 40.0;
+  final double _dragThreshold = 40.0;
 
   @override
   void initState() {
@@ -32,7 +33,7 @@ class _ChatBubbleState extends State<ChatBubble> with SingleTickerProviderStateM
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    
+
     // Different animations for sender vs receiver
     if (widget.isMe) {
       _slideAnimation = Tween<double>(begin: 0, end: -40).animate(
@@ -57,7 +58,7 @@ class _ChatBubbleState extends State<ChatBubble> with SingleTickerProviderStateM
 
   void _handleDragUpdate(DragUpdateDetails details) {
     final dragDelta = details.globalPosition.dx - _startDragX;
-    
+
     // Handle drag in correct direction based on sender/receiver
     if ((widget.isMe && dragDelta < 0) || (!widget.isMe && dragDelta > 0)) {
       final dragPercentage = (dragDelta.abs() / _dragThreshold).clamp(0.0, 1.0);
@@ -88,7 +89,8 @@ class _ChatBubbleState extends State<ChatBubble> with SingleTickerProviderStateM
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
-        mainAxisAlignment: widget.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment:
+            widget.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!widget.isMe && widget.avatarUrl != null) ...[
@@ -98,11 +100,10 @@ class _ChatBubbleState extends State<ChatBubble> with SingleTickerProviderStateM
             ),
             const SizedBox(width: 8),
           ],
-          
+
           // Time for sender messages (left side)
-          if (widget.isMe)
-            _buildTimeWidget(isLeft: true),
-          
+          if (widget.isMe) _buildTimeWidget(isLeft: true),
+
           // Message bubble with correct iMessage styling
           GestureDetector(
             onHorizontalDragStart: _handleDragStart,
@@ -119,11 +120,10 @@ class _ChatBubbleState extends State<ChatBubble> with SingleTickerProviderStateM
               child: _buildMessageBubble(),
             ),
           ),
-          
+
           // Time for receiver messages (right side)
-          if (!widget.isMe)
-            _buildTimeWidget(isLeft: false),
-            
+          if (!widget.isMe) _buildTimeWidget(isLeft: false),
+
           if (widget.isMe && widget.avatarUrl != null) ...[
             const SizedBox(width: 8),
             CircleAvatar(
@@ -148,7 +148,7 @@ class _ChatBubbleState extends State<ChatBubble> with SingleTickerProviderStateM
         ),
         child: Text(
           _formatTime(widget.timestamp),
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.grey,
             fontSize: 11,
           ),
@@ -160,23 +160,27 @@ class _ChatBubbleState extends State<ChatBubble> with SingleTickerProviderStateM
 
   Widget _buildMessageBubble() {
     // Calculate proper bubble shape with tail
-    final radius = 18.0;
-    
+    const radius = 18.0;
+
     return Flexible(
       child: Container(
         constraints: BoxConstraints(
           maxWidth: MediaQuery.of(context).size.width * 0.7,
         ),
-        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: widget.isMe
               ? const Color(0xFF3B82F6) // iMessage blue
               : const Color(0xFFE5E5EA), // iMessage light gray
           borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(radius),
-            topRight: Radius.circular(radius),
-            bottomLeft: widget.isMe ? Radius.circular(radius) : Radius.circular(radius / 3),
-            bottomRight: widget.isMe ? Radius.circular(radius / 3) : Radius.circular(radius),
+            topLeft: const Radius.circular(radius),
+            topRight: const Radius.circular(radius),
+            bottomLeft: widget.isMe
+                ? const Radius.circular(radius)
+                : const Radius.circular(radius / 3),
+            bottomRight: widget.isMe
+                ? const Radius.circular(radius / 3)
+                : const Radius.circular(radius),
           ),
         ),
         child: Text(
@@ -191,7 +195,11 @@ class _ChatBubbleState extends State<ChatBubble> with SingleTickerProviderStateM
   }
 
   String _formatTime(DateTime time) {
-    final hour = time.hour > 12 ? time.hour - 12 : time.hour == 0 ? 12 : time.hour;
+    final hour = time.hour > 12
+        ? time.hour - 12
+        : time.hour == 0
+            ? 12
+            : time.hour;
     final minute = time.minute.toString().padLeft(2, '0');
     final period = time.hour >= 12 ? 'PM' : 'AM';
     return '$hour:$minute $period';

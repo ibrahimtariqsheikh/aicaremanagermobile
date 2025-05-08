@@ -16,7 +16,7 @@ class VisitReportDetails extends StatelessWidget {
     final theme = Theme.of(context);
     final dateFormat = DateFormat('EEEE, MMMM d, yyyy');
     final timeFormat = DateFormat('h:mm a');
-    
+
     return CupertinoPageScaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       navigationBar: CupertinoNavigationBar(
@@ -36,13 +36,13 @@ class VisitReportDetails extends StatelessWidget {
               children: [
                 // Client Info Card
                 _buildClientInfoCard(theme, dateFormat, timeFormat),
-                
+
                 // Visit Details Card
                 _buildVisitDetailsCard(theme),
-                
+
                 // Notes Card
                 _buildNotesCard(theme),
-                
+
                 const SizedBox(height: 24),
               ],
             ),
@@ -52,7 +52,8 @@ class VisitReportDetails extends StatelessWidget {
     );
   }
 
-  Widget _buildClientInfoCard(ThemeData theme, DateFormat dateFormat, DateFormat timeFormat) {
+  Widget _buildClientInfoCard(
+      ThemeData theme, DateFormat dateFormat, DateFormat timeFormat) {
     return CustomCard(
       hasShadow: false,
       child: Padding(
@@ -101,7 +102,8 @@ class VisitReportDetails extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
@@ -243,11 +245,11 @@ class VisitReportDetails extends StatelessWidget {
 
   String _getInitials(String fullName) {
     if (fullName.isEmpty) return '';
-    
+
     final nameParts = fullName.split(' ');
     if (nameParts.length > 1) {
       return '${nameParts[0][0]}${nameParts[1][0]}'.toUpperCase();
     }
     return fullName[0].toUpperCase();
   }
-} 
+}

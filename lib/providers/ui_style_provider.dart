@@ -18,4 +18,4 @@ class UIStyleNotifier extends StateNotifier<UIStyle> {
 
 final uiStyleProvider = StateNotifierProvider<UIStyleNotifier, UIStyle>((ref) {
   return UIStyleNotifier();
-}); 
+});

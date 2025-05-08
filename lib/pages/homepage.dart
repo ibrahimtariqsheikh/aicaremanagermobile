@@ -9,14 +9,13 @@ import 'package:aicaremanagermob/providers/auth_provider.dart';
 import 'message.dart';
 import 'schedule.dart';
 import 'reports.dart';
-import 'careai.dart';
+
 import 'profile.dart';
 
 final List<String> tabTitles = [
   'Schedule',
   'Reports',
   'Messages',
-  'Care AI',
   'Profile',
 ];
 
@@ -36,27 +35,23 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   void initState() {
     super.initState();
-   
+
     _pages = [
-  
       const ProviderScope(child: SchedulePage()),
       const ProviderScope(child: ReportsPage()),
-      const ProviderScope(child: MessagePage()),
-      const ProviderScope(child: CareAiPage(id: 'ibbi', email: 'ibbi@gmail.com')),
+      ProviderScope(child: MessagesPage()),
       const ProviderScope(child: ProfilePage()),
     ];
   }
 
   @override
   Widget build(BuildContext context) {
-
     final themeMode = ref.watch(themeProvider);
     final isDark = themeMode == ThemeMode.dark;
-    
+
     // Watch auth state
     ref.watch(authProvider);
-    
-    
+
     return CupertinoTabScaffold(
       tabBar: CupertinoTabBar(
         currentIndex: _currentIndex,
@@ -67,19 +62,26 @@ class _HomePageState extends ConsumerState<HomePage> {
         },
         activeColor: CupertinoColors.activeBlue,
         inactiveColor: CupertinoColors.systemGrey,
-        backgroundColor: isDark ? CupertinoColors.darkBackgroundGray : CupertinoColors.systemBackground,
+        backgroundColor: isDark
+            ? CupertinoColors.darkBackgroundGray
+            : CupertinoColors.systemBackground,
         border: Border(
           top: BorderSide(
-            color: isDark ? CupertinoColors.systemGrey.darkColor : CupertinoColors.systemGrey4,
+            color: isDark
+                ? CupertinoColors.systemGrey.darkColor
+                : CupertinoColors.systemGrey4,
             width: 0.2,
           ),
         ),
         items: [
-          _buildTabBarItem(CupertinoIcons.calendar, CupertinoIcons.calendar, tabTitles[0], isDark),
-          _buildTabBarItem(CupertinoIcons.chart_bar, CupertinoIcons.chart_bar, tabTitles[1], isDark),
-          _buildTabBarItem(CupertinoIcons.chat_bubble_text, CupertinoIcons.chat_bubble_text, tabTitles[2], isDark),
-          _buildTabBarItem(CupertinoIcons.circle_grid_3x3, CupertinoIcons.circle_grid_3x3, tabTitles[3], isDark),
-          _buildTabBarItem(CupertinoIcons.person, CupertinoIcons.person, tabTitles[4], isDark),
+          _buildTabBarItem(CupertinoIcons.calendar, CupertinoIcons.calendar,
+              tabTitles[0], isDark),
+          _buildTabBarItem(CupertinoIcons.chart_bar, CupertinoIcons.chart_bar,
+              tabTitles[1], isDark),
+          _buildTabBarItem(CupertinoIcons.chat_bubble_text,
+              CupertinoIcons.chat_bubble_text, tabTitles[2], isDark),
+          _buildTabBarItem(CupertinoIcons.person, CupertinoIcons.person,
+              tabTitles[3], isDark),
         ],
       ),
       tabBuilder: (BuildContext context, int index) {
@@ -92,13 +94,16 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  BottomNavigationBarItem _buildTabBarItem(IconData icon, IconData activeIcon, String label, bool isDark) {
+  BottomNavigationBarItem _buildTabBarItem(
+      IconData icon, IconData activeIcon, String label, bool isDark) {
     return BottomNavigationBarItem(
-      icon: Icon(icon, color: isDark ? CupertinoColors.systemGrey : CupertinoColors.inactiveGray, size: 20),
+      icon: Icon(icon,
+          color: isDark
+              ? CupertinoColors.systemGrey
+              : CupertinoColors.inactiveGray,
+          size: 20),
       activeIcon: Icon(activeIcon, color: CupertinoColors.activeBlue, size: 20),
       label: label,
     );
   }
 }
-
-

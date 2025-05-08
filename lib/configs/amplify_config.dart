@@ -1,10 +1,8 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-final poolId = dotenv.env["AWS_COGNITO_USER_POOL_ID"];
-final appClientId = dotenv.env["AWS_COGNITO_USER_POOL_CLIENT_ID"];
-final region = dotenv.env["AWS_COGNITO_REGION"];
-
-
+final poolId = dotenv.env['AWS_COGNITO_USER_POOL_ID'];
+final appClientId = dotenv.env['AWS_COGNITO_USER_POOL_CLIENT_ID'];
+final region = dotenv.env['AWS_COGNITO_REGION'];
 
 final amplifyConfig = ''' {
   "UserAgent": "aws-amplify-cli/2.0",

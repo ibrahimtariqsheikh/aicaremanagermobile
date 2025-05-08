@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class MyTextField extends StatefulWidget {
@@ -55,16 +56,17 @@ class _MyTextFieldState extends State<MyTextField> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15.0),
-        color: Theme.of(context).colorScheme.secondary,
-        border: Border.all(
-          color: Theme.of(context).colorScheme.secondaryContainer,
-          width: 2,
-        ),
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.black.withValues(alpha: .05),
       ),
       child: TextFormField(
         onChanged: (text) {},
-        style: Theme.of(context).textTheme.bodySmall,
+        style: GoogleFonts.inter(
+          textStyle: Theme.of(context).textTheme.bodySmall!,
+          color: Colors.black,
+          fontSize: 15,
+          fontWeight: FontWeight.w400,
+        ),
         controller: _controller,
         validator: widget.validator ??
             (value) {
@@ -73,29 +75,34 @@ class _MyTextFieldState extends State<MyTextField> {
         autovalidateMode: AutovalidateMode.onUserInteraction,
         decoration: InputDecoration(
           hintText: widget.hintText,
-          hintStyle: const TextStyle(
-            color: Colors.grey,
-            fontSize: 20,
-            fontWeight: FontWeight.w100,
+          hintStyle: GoogleFonts.inter(
+            textStyle: Theme.of(context).textTheme.bodySmall!,
+            color: Colors.black54,
+            fontSize: 15,
+            fontWeight: FontWeight.w400,
           ),
-          errorStyle: GoogleFonts.urbanist(
+          errorStyle: GoogleFonts.inter(
             textStyle: Theme.of(context).textTheme.headlineSmall!,
             color: Colors.red,
             fontSize: 16,
             fontWeight: FontWeight.w400,
           ),
           errorMaxLines: 3,
-          contentPadding: const EdgeInsets.all(10),
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
           border: InputBorder.none,
           focusedBorder: InputBorder.none,
           prefixIcon: widget.prefixIcon,
           suffixIcon:
               (widget.suffixIcon == null && widget.passwordSuffix == true)
-                  ? IconButton(
-                      icon: (hidePassword == false)
-                          ? const Icon(Icons.visibility_off)
-                          : const Icon(Icons.visibility),
-                      color: Colors.grey,
+                  ? CupertinoButton(
+                      padding: EdgeInsets.zero,
+                      minSize: 0,
+                      child: (hidePassword == false)
+                          ? const Icon(CupertinoIcons.eye_slash_fill,
+                              color: Colors.black54, size: 18)
+                          : const Icon(CupertinoIcons.eye_fill,
+                              color: Colors.black54, size: 18),
                       onPressed: () {
                         setState(() {
                           hidePassword = !hidePassword;

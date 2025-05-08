@@ -43,7 +43,7 @@ class _StatsViewState extends State<StatsView>
 
   @override
   Widget build(BuildContext context) {
-    int intValue = widget.value.toInt();
+    final int intValue = widget.value.toInt();
     return Column(
       children: [
         Container(
@@ -114,10 +114,10 @@ class _FillPainter extends CustomPainter with ChangeNotifier {
 
   @override
   void paint(Canvas canvas, Size size) {
-    double fillHeight = size.height * animation.value;
-    Paint fillPaint = Paint()..color = color;
+    final double fillHeight = size.height * animation.value;
+    final Paint fillPaint = Paint()..color = color;
 
-    RRect inner = RRect.fromLTRBR(
+    final RRect inner = RRect.fromLTRBR(
       0,
       size.height - fillHeight,
       size.width,

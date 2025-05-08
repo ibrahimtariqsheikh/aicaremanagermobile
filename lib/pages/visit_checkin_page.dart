@@ -41,7 +41,7 @@ class _VisitCheckinPageState extends State<VisitCheckinPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final client = widget.schedule.client;
-    
+
     return CupertinoPageScaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       navigationBar: CupertinoNavigationBar(
@@ -53,13 +53,15 @@ class _VisitCheckinPageState extends State<VisitCheckinPage> {
         ),
         trailing: CupertinoButton(
           padding: EdgeInsets.zero,
-          onPressed: _isCompleted ? null : () {
-            setState(() {
-              _isCompleted = true;
-            });
-            // TODO: Save visit information
-            Navigator.pop(context);
-          },
+          onPressed: _isCompleted
+              ? null
+              : () {
+                  setState(() {
+                    _isCompleted = true;
+                  });
+                  // TODO: Save visit information
+                  Navigator.pop(context);
+                },
           child: Text(
             'Complete',
             style: theme.textTheme.bodyMedium?.copyWith(
@@ -76,19 +78,19 @@ class _VisitCheckinPageState extends State<VisitCheckinPage> {
             children: [
               // Client Info Card
               _buildClientInfoCard(client, theme),
-              
+
               // Check-in Time
               _buildSectionHeader('Check-in Time', theme),
               _buildTimeCard(_checkInTime!, theme),
-              
+
               // Visit Status
               _buildSectionHeader('Visit Status', theme),
               _buildVisitStatusCard(theme),
-              
+
               // Notes
               _buildSectionHeader('Visit Notes', theme),
               _buildNotesCard(theme),
-              
+
               const SizedBox(height: 24),
             ],
           ),
@@ -292,11 +294,11 @@ class _VisitCheckinPageState extends State<VisitCheckinPage> {
 
   String _getInitials(String fullName) {
     if (fullName.isEmpty) return '';
-    
+
     final nameParts = fullName.split(' ');
     if (nameParts.length > 1) {
       return '${nameParts[0][0]}${nameParts[1][0]}'.toUpperCase();
     }
     return fullName[0].toUpperCase();
   }
-} 
+}

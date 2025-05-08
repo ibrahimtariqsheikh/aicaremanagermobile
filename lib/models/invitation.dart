@@ -58,4 +58,4 @@ class Invitation {
       'invitedById': invitedById,
     };
   }
-} 
+}

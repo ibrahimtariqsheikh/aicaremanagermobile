@@ -11,10 +11,16 @@ enum ScheduleType {
   other;
 
   static ScheduleType fromString(String value) {
-    return ScheduleType.values.firstWhere(
+    print('Converting schedule type from string: $value');
+    final type = ScheduleType.values.firstWhere(
       (type) => type.toString().split('.').last.toUpperCase() == value,
-      orElse: () => ScheduleType.other,
+      orElse: () {
+        print('No matching type found for $value, defaulting to other');
+        return ScheduleType.other;
+      },
     );
+    print('Converted to type: $type');
+    return type;
   }
 
   String toApiString() {
@@ -77,6 +83,7 @@ class Schedule extends Equatable {
       ];
 
   factory Schedule.fromJson(Map<String, dynamic> json) {
+    print('Creating Schedule from JSON: $json');
     return Schedule(
       id: json['id'] as String,
       agencyId: json['agencyId'] as String,
@@ -153,4 +160,4 @@ class Schedule extends Equatable {
       client: client ?? this.client,
     );
   }
-} 
+}

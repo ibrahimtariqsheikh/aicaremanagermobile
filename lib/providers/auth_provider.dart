@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'package:aicaremanagermob/configs/app_api_config.dart';
 import '../models/user.dart';
 import 'package:equatable/equatable.dart';
-
+import 'package:aicaremanagermob/providers/schedule_provider.dart';
 part 'auth_provider.g.dart';
 
 // Default user for initial state
@@ -24,13 +24,11 @@ class AuthState extends Equatable {
   final bool isLoading;
   final String? error;
   final User user;
-  final List<Schedule> schedules;
 
   const AuthState({
     required this.isLoading,
     required this.error,
     required this.user,
-    required this.schedules,
   });
 
   @override
@@ -43,14 +41,11 @@ class AuthState extends Equatable {
     bool? isLoading,
     String? error,
     User? user,
-    List<Schedule>? schedules,
   }) {
-    
     return AuthState(
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
       user: user ?? this.user,
-      schedules: schedules ?? this.schedules,
     );
   }
 
@@ -59,7 +54,6 @@ class AuthState extends Equatable {
       isLoading: false,
       error: null,
       user: _defaultUser,
-      schedules: const [],
     );
   }
 }
@@ -71,51 +65,45 @@ class Auth extends _$Auth {
     return AuthState.initial();
   }
 
-  Future<String> signIn() async {
+  Future<String> signIn(
+      {required String email, required String password}) async {
     try {
+      print('signIn with email: $email');
       state = state.copyWith(isLoading: true);
-      
+
       final response = await http.get(
         Uri.parse(AppApiConfig.getUserUrl('cm9n1ok5x00038ohc8boavle3')),
       );
 
+      print(response.body);
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = json.decode(response.body);
         final userData = responseData['data'];
         final user = User.fromJson(userData);
-      
+
         state = state.copyWith(
           isLoading: false,
           error: null,
           user: user,
         );
-        final schedulesResponse = await http.get(
-          Uri.parse(AppApiConfig.getScheduleUrl('cm9n1ok5x00038ohc8boavle3')),
-        );
-        if (schedulesResponse.statusCode == 200) {
-          final List<dynamic> schedulesData = json.decode(schedulesResponse.body);
-          final List<Schedule> schedules = schedulesData
-              .map((schedule) => Schedule.fromJson(schedule))
-              .toList()
-              .cast<Schedule>();
-          state = state.copyWith(
-            schedules: schedules,
-          );
-        }
-        return "signedIn";
+
+        // Load schedules using the actual user ID
+        ref.read(scheduleNotifierProvider.notifier).loadSchedules(user.id);
+        return 'signedIn';
       } else {
         state = state.copyWith(
           isLoading: false,
           error: 'Failed to fetch user data: ${response.statusCode}',
         );
-        return "failedToSignIn";
+        return 'failedToSignIn';
       }
     } catch (e) {
+      print(e);
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
       );
-      return "failedToSignIn";
+      return 'failedToSignIn';
     }
   }
 

@@ -13,4 +13,4 @@ class CustomError {
   String toString() {
     return 'CustomError(code: $code, plugin: $plugin, message: $message)';
   }
-} 
+}

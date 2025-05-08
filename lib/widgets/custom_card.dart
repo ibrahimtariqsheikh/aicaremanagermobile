@@ -27,24 +27,28 @@ class CustomCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
-    Widget card = Container(
+
+    final Widget card = Container(
       margin: margin ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: padding ?? const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: backgroundColor ?? theme.cardColor,
         borderRadius: BorderRadius.circular(borderRadius),
-        border: borderColor != null ? Border.all(
-          color: borderColor!,
-          width: borderWidth,
-        ) : null,
-        boxShadow: hasShadow ? [
-          BoxShadow(
-            color: theme.shadowColor.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ] : null,
+        border: borderColor != null
+            ? Border.all(
+                color: borderColor!,
+                width: borderWidth,
+              )
+            : null,
+        boxShadow: hasShadow
+            ? [
+                BoxShadow(
+                  color: theme.shadowColor.withValues(alpha: 0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : null,
       ),
       child: child,
     );

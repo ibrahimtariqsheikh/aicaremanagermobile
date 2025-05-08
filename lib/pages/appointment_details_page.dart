@@ -8,7 +8,6 @@ import 'package:aicaremanagermob/pages/visit_checkin_page.dart';
 import 'package:aicaremanagermob/widgets/custom_card.dart';
 import 'dart:math';
 
-
 class AppointmentDetailsPage extends StatefulWidget {
   final Schedule schedule;
 
@@ -28,11 +27,12 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
   @override
   Widget build(BuildContext context) {
     final client = widget.schedule.client;
-    final formattedDate = DateFormat('EEEE, MMMM d, yyyy').format(widget.schedule.date);
-    final isToday = DateFormat('yyyy-MM-dd').format(widget.schedule.date) == 
-                    DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final formattedDate =
+        DateFormat('EEEE, MMMM d, yyyy').format(widget.schedule.date);
+    final isToday = DateFormat('yyyy-MM-dd').format(widget.schedule.date) ==
+        DateFormat('yyyy-MM-dd').format(DateTime.now());
     final theme = Theme.of(context);
-    
+
     return CupertinoPageScaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       navigationBar: CupertinoNavigationBar(
@@ -47,7 +47,8 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(CupertinoIcons.pencil, size: 16, color: theme.colorScheme.primary),
+              Icon(CupertinoIcons.pencil,
+                  size: 16, color: theme.colorScheme.primary),
               const SizedBox(width: 4),
               Text(
                 'Edit',
@@ -67,10 +68,10 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
           children: [
             // Appointment Header Card
             _buildAppointmentHeader(context, client, formattedDate, isToday),
-            
+
             // Tab Selector
             _buildTabSelector(),
-            
+
             // Tab Content
             Expanded(
               child: CupertinoScrollbar(
@@ -108,7 +109,9 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
               },
               child: Container(
                 decoration: BoxDecoration(
-                  color: isSelected ? theme.colorScheme.primary : Colors.transparent,
+                  color: isSelected
+                      ? theme.colorScheme.primary
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 margin: const EdgeInsets.all(4),
@@ -116,8 +119,11 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
                   child: Text(
                     _tabs[index],
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: isSelected ? theme.colorScheme.surface : theme.colorScheme.onTertiary,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                      color: isSelected
+                          ? theme.colorScheme.surface
+                          : theme.colorScheme.onTertiary,
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
                 ),
@@ -149,13 +155,13 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
         // Client Basic Information
         _buildSectionHeader('Client Information'),
         _buildClientBasicInfoCard(client),
-        
+
         // Action Buttons
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           child: _buildActionButtons(client),
         ),
-        
+
         const SizedBox(height: 24),
       ],
     );
@@ -177,19 +183,19 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
         // Personal Information
         _buildSectionHeader('Personal Information'),
         _buildPersonalInfoCard(client),
-        
+
         // Contact Information
         _buildSectionHeader('Contact Information'),
         _buildContactInfoCard(client),
-        
+
         // Medical Information
         _buildSectionHeader('Medical Information'),
         _buildMedicalInfoCard(client),
-        
+
         // Preferences & Notes
         _buildSectionHeader('Preferences & Background'),
         _buildPreferencesCard(client),
-        
+
         const SizedBox(height: 24),
       ],
     );
@@ -202,7 +208,7 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
         // Appointment Notes
         _buildSectionHeader('Appointment Notes'),
         _buildNotesCard(),
-        
+
         // Add Notes Button
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -226,7 +232,8 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(CupertinoIcons.pencil, color: CupertinoColors.activeBlue, size: 18),
+                  Icon(CupertinoIcons.pencil,
+                      color: CupertinoColors.activeBlue, size: 18),
                   SizedBox(width: 8),
                   Text(
                     'Add Notes',
@@ -240,17 +247,18 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
             ),
           ),
         ),
-        
+
         const SizedBox(height: 24),
       ],
     );
   }
 
-  Widget _buildAppointmentHeader(BuildContext context, User? client, String formattedDate, bool isToday) {
+  Widget _buildAppointmentHeader(
+      BuildContext context, User? client, String formattedDate, bool isToday) {
     final theme = Theme.of(context);
     final statusColor = _getStatusColor(widget.schedule.status);
     final appointmentType = widget.schedule.type.toString().split('.').last;
-    
+
     return CustomCard(
       hasShadow: false,
       child: Padding(
@@ -262,7 +270,8 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
@@ -327,7 +336,8 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
@@ -381,7 +391,8 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
                   ),
                 ),
                 Text(
-                  _calculateDuration(widget.schedule.startTime, widget.schedule.endTime),
+                  _calculateDuration(
+                      widget.schedule.startTime, widget.schedule.endTime),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onTertiary,
                   ),
@@ -478,7 +489,8 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
             _buildInfoRow(
               CupertinoIcons.heart,
               'Gender',
-              value: client.subRole?.toString().split('.').last ?? 'Not provided',
+              value:
+                  client.subRole?.toString().split('.').last ?? 'Not provided',
             ),
           ],
         ),
@@ -559,8 +571,9 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
   }
 
   Widget _buildNotesCard() {
-    final hasNotes = widget.schedule.notes != null && widget.schedule.notes!.isNotEmpty;
-    
+    final hasNotes =
+        widget.schedule.notes != null && widget.schedule.notes!.isNotEmpty;
+
     return _buildCard(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -576,7 +589,8 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: CupertinoColors.activeBlue.withValues(alpha: 0.1),
+                          color:
+                              CupertinoColors.activeBlue.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Icon(
@@ -687,16 +701,16 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 14),
             decoration: BoxDecoration(
-              color: widget.schedule.status == 'CONFIRMED' 
-                ? CupertinoColors.systemRed 
-                : CupertinoColors.activeGreen,
+              color: widget.schedule.status == 'CONFIRMED'
+                  ? CupertinoColors.systemRed
+                  : CupertinoColors.activeGreen,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
               child: Text(
-                widget.schedule.status == 'CONFIRMED' 
-                  ? 'Cancel Appointment' 
-                  : 'Confirm Appointment',
+                widget.schedule.status == 'CONFIRMED'
+                    ? 'Cancel Appointment'
+                    : 'Confirm Appointment',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: CupertinoColors.white,
                   fontWeight: FontWeight.bold,
@@ -705,9 +719,9 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
             ),
           ),
         ),
-        
+
         const SizedBox(height: 12),
-        
+
         // Check-in button
         CupertinoButton(
           padding: EdgeInsets.zero,
@@ -716,7 +730,8 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
             Navigator.push(
               context,
               CupertinoPageRoute(
-                builder: (context) => VisitCheckinPage(schedule: widget.schedule),
+                builder: (context) =>
+                    VisitCheckinPage(schedule: widget.schedule),
               ),
             );
           },
@@ -730,7 +745,8 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(CupertinoIcons.checkmark_circle, color: theme.colorScheme.surface, size: 18),
+                Icon(CupertinoIcons.checkmark_circle,
+                    color: theme.colorScheme.surface, size: 18),
                 const SizedBox(width: 8),
                 Text(
                   'Check In',
@@ -762,7 +778,7 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
 
   String _getInitials(String fullName) {
     if (fullName.isEmpty) return '';
-    
+
     final nameParts = fullName.split(' ');
     if (nameParts.length > 1) {
       return '${nameParts[0][0]}${nameParts[1][0]}'.toUpperCase();
@@ -780,10 +796,10 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
     final start = DateFormat('HH:mm').parse(startTime);
     final end = DateFormat('HH:mm').parse(endTime);
     final difference = end.difference(start);
-    
+
     final hours = difference.inHours;
     final minutes = difference.inMinutes % 60;
-    
+
     if (hours > 0) {
       return '${hours}h ${minutes}m';
     }

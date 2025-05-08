@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:aicaremanagermob/main.dart';
 import 'package:aicaremanagermob/providers/auth_provider.dart';
-
+import 'package:google_fonts/google_fonts.dart';
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
@@ -14,22 +14,22 @@ class ProfilePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeProvider);
     final theme = Theme.of(context);
-    
+
     return defaultTargetPlatform == TargetPlatform.iOS
         ? _buildIOSProfile(context, ref, themeMode, theme)
         : _buildAndroidProfile(context, ref, themeMode, theme);
   }
 
-  Widget _buildIOSProfile(BuildContext context, WidgetRef ref, ThemeMode themeMode, ThemeData theme) {
+  Widget _buildIOSProfile(BuildContext context, WidgetRef ref,
+      ThemeMode themeMode, ThemeData theme) {
     return CupertinoPageScaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
       navigationBar: CupertinoNavigationBar(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        middle: const Text(
+        backgroundColor: CupertinoColors.systemBackground,
+        middle: Text(
           'Profile',
-          style: TextStyle(
+          style: GoogleFonts.inter(
             fontSize: 15,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w600,
             decoration: TextDecoration.none,
           ),
         ),
@@ -46,7 +46,6 @@ class ProfilePage extends ConsumerWidget {
           slivers: [
             _buildProfileHeader(ref, theme),
             _buildPersonalInfoSection(ref, theme),
-            _buildHealthInfoSection(ref, theme),
             _buildSettingsSection(ref, themeMode, theme),
             _buildLogoutSection(ref, theme),
           ],
@@ -55,16 +54,17 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildAndroidProfile(BuildContext context, WidgetRef ref, ThemeMode themeMode, ThemeData theme) {
+  Widget _buildAndroidProfile(BuildContext context, WidgetRef ref,
+      ThemeMode themeMode, ThemeData theme) {
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        title: const Text(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: Text(
           'Profile',
-          style: TextStyle(
+          style: GoogleFonts.inter(
             fontSize: 15,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w600,
           ),
         ),
         actions: [
@@ -92,7 +92,7 @@ class ProfilePage extends ConsumerWidget {
 
   Widget _buildProfileHeader(WidgetRef ref, ThemeData theme) {
     final user = ref.watch(authProvider).user;
-    
+
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -116,7 +116,6 @@ class ProfilePage extends ConsumerWidget {
                 color: CupertinoColors.label,
               ),
             ),
-           
             const SizedBox(height: 4),
             Text(
               user.email,
@@ -134,7 +133,7 @@ class ProfilePage extends ConsumerWidget {
 
   Widget _buildPersonalInfoSection(WidgetRef ref, ThemeData theme) {
     final user = ref.watch(authProvider).user;
-    
+
     return SliverToBoxAdapter(
       child: CupertinoListSection.insetGrouped(
         header: const Text(
@@ -149,45 +148,22 @@ class ProfilePage extends ConsumerWidget {
         backgroundColor: theme.scaffoldBackgroundColor,
         children: [
           _buildInfoItem('Role', user.role.toString().split('.').last, theme),
-          _buildInfoItem('Sub Role', user.subRole?.toString().split('.').last, theme),
+          _buildInfoItem(
+              'Sub Role', user.subRole?.toString().split('.').last, theme),
           _buildInfoItem('Phone', user.phoneNumber, theme),
-          _buildInfoItem('Address', '${user.address}, ${user.city}, ${user.province}', theme),
+          _buildInfoItem('Address',
+              '${user.address}, ${user.city}, ${user.province}', theme),
           _buildInfoItem('Postal Code', user.postalCode, theme),
-          _buildInfoItem('Date of Birth', user.dateOfBirth?.toIso8601String(), theme),
+          _buildInfoItem(
+              'Date of Birth', user.dateOfBirth?.toIso8601String(), theme),
           _buildInfoItem('Languages', user.languages, theme),
         ],
       ),
     );
   }
 
-  Widget _buildHealthInfoSection(WidgetRef ref, ThemeData theme) {
-    final user = ref.watch(authProvider).user;
-    
-    return SliverToBoxAdapter(
-      child: CupertinoListSection.insetGrouped(
-        header: const Text(
-          'Health Information',
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: CupertinoColors.label,
-          ),
-        ),
-        margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 16),
-        backgroundColor: theme.scaffoldBackgroundColor,
-        children: [
-          _buildInfoItem('NHS Number', user.nhsNumber, theme),
-          _buildInfoItem('Mobility', user.mobility, theme),
-          _buildInfoItem('Allergies', user.allergies, theme),
-          _buildInfoItem('Likes/Dislikes', user.likesDislikes, theme),
-          _buildInfoItem('Interests', user.interests, theme),
-          _buildInfoItem('History', user.history, theme),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSettingsSection(WidgetRef ref, ThemeMode themeMode, ThemeData theme) {
+  Widget _buildSettingsSection(
+      WidgetRef ref, ThemeMode themeMode, ThemeData theme) {
     return SliverToBoxAdapter(
       child: CupertinoListSection.insetGrouped(
         header: const Text(
@@ -203,7 +179,6 @@ class ProfilePage extends ConsumerWidget {
         children: [
           _buildActionItem('Edit Profile', LucideIcons.user, theme),
           _buildActionItem('Change Password', LucideIcons.lock, theme),
-          _buildThemeSwitcher(ref, themeMode, theme),
         ],
       ),
     );
@@ -253,39 +228,6 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildThemeSwitcher(WidgetRef ref, ThemeMode themeMode, ThemeData theme) {
-    return CupertinoListTile(
-      leading: Icon(
-        themeMode == ThemeMode.dark ? LucideIcons.moon : LucideIcons.sun,
-        color: theme.colorScheme.primary,
-        size: 15,
-      ),
-      title: const Text(
-        'Theme',
-        style: TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
-          color: CupertinoColors.label,
-        ),
-      ),
-      trailing: CupertinoButton(
-        padding: EdgeInsets.zero,
-        child: Text(
-          themeMode == ThemeMode.dark ? 'Dark' : 'Light',
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w500,
-            color: CupertinoColors.inactiveGray,
-          ),
-        ),
-        onPressed: () {
-          ref.read(themeProvider.notifier).state = 
-            themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
-        },
-      ),
-    );
-  }
-
   Widget _buildActionItem(String title, IconData icon, ThemeData theme) {
     return CupertinoListTile(
       leading: Icon(
@@ -308,7 +250,7 @@ class ProfilePage extends ConsumerWidget {
 
   Widget _buildPersonalInfoSectionAndroid(WidgetRef ref, ThemeData theme) {
     final user = ref.watch(authProvider).user;
-    
+
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 16),
       child: Column(
@@ -326,12 +268,16 @@ class ProfilePage extends ConsumerWidget {
             ),
           ),
           const Divider(height: 1),
-          _buildInfoItemAndroid('Role', user.role.toString().split('.').last, theme),
-          _buildInfoItemAndroid('Sub Role', user.subRole?.toString().split('.').last, theme),
+          _buildInfoItemAndroid(
+              'Role', user.role.toString().split('.').last, theme),
+          _buildInfoItemAndroid(
+              'Sub Role', user.subRole?.toString().split('.').last, theme),
           _buildInfoItemAndroid('Phone', user.phoneNumber, theme),
-          _buildInfoItemAndroid('Address', '${user.address}, ${user.city}, ${user.province}', theme),
+          _buildInfoItemAndroid('Address',
+              '${user.address}, ${user.city}, ${user.province}', theme),
           _buildInfoItemAndroid('Postal Code', user.postalCode, theme),
-          _buildInfoItemAndroid('Date of Birth', user.dateOfBirth?.toIso8601String(), theme),
+          _buildInfoItemAndroid(
+              'Date of Birth', user.dateOfBirth?.toIso8601String(), theme),
           _buildInfoItemAndroid('Languages', user.languages, theme),
         ],
       ),
@@ -340,7 +286,7 @@ class ProfilePage extends ConsumerWidget {
 
   Widget _buildHealthInfoSectionAndroid(WidgetRef ref, ThemeData theme) {
     final user = ref.watch(authProvider).user;
-    
+
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 16),
       child: Column(
@@ -369,7 +315,8 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildSettingsSectionAndroid(WidgetRef ref, ThemeMode themeMode, ThemeData theme) {
+  Widget _buildSettingsSectionAndroid(
+      WidgetRef ref, ThemeMode themeMode, ThemeData theme) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 16),
       child: Column(
@@ -441,7 +388,8 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildThemeSwitcherAndroid(WidgetRef ref, ThemeMode themeMode, ThemeData theme) {
+  Widget _buildThemeSwitcherAndroid(
+      WidgetRef ref, ThemeMode themeMode, ThemeData theme) {
     return ListTile(
       leading: Icon(
         themeMode == ThemeMode.dark ? LucideIcons.moon : LucideIcons.sun,
@@ -458,8 +406,8 @@ class ProfilePage extends ConsumerWidget {
       ),
       trailing: TextButton(
         onPressed: () {
-          ref.read(themeProvider.notifier).state = 
-            themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+          ref.read(themeProvider.notifier).state =
+              themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
         },
         child: Text(
           themeMode == ThemeMode.dark ? 'Dark' : 'Light',

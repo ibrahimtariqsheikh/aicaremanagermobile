@@ -36,4 +36,4 @@ class ChatMessage {
       'senderAvatar': senderAvatar,
     };
   }
-} 
+}
