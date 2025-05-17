@@ -2,20 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 abstract class AppColors {
-  static const secondary = Color(0xFF3B76F6);
+  static const background = Color(0xFFFAFAFA);
+  static const mainBlue = Color(0XFF2463EB);
   static const accent = Color(0xFFD6755B);
   static const textDark = Color(0xFF53585A);
   static const textLight = Color(0xFFF5F5F5);
   static const textFaded = Color(0xFF9899A5);
   static const iconLight = Color(0xFFB1B4C0);
   static const iconDark = Color(0xFFB1B3C1);
-  static const textHighlight = secondary;
+  static const textHighlight = mainBlue;
   static const logoLight = Color(0xFF303334);
   static const logoDark = Color(0xFFF9FAFE);
   static const cardLight = Color(0xFFF9FAFE);
   static const cardDark = Color(0xFF1A1A1C);
   static const dividerLight = Color.fromRGBO(0, 0, 0, .15);
   static const dividerDark = Color.fromRGBO(255, 255, 255, .25);
+  static const cardColor = Color(0xFFF3F4F6);
   static const socialButtonColorLight = Colors.white;
   static const socialButtonBorderLight = Color(0xFFD6D6D6);
   static const socialButtonColorDark = Color.fromRGBO(20, 21, 24, 1);
@@ -23,7 +25,7 @@ abstract class AppColors {
 }
 
 abstract class _LightColors {
-  static const background = Color(0xFFF2F1F6);
+  static const background = Color(0xFFF5F4F9);
   static const logo = AppColors.logoLight;
   static const card = AppColors.cardLight;
   static const divider = AppColors.dividerLight;

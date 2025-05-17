@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:aicaremanagermob/widgets/custom_card.dart';
 import 'package:intl/intl.dart';
+import 'package:aicaremanagermob/utils/image_utils.dart';
 
 class VisitReportDetails extends StatelessWidget {
   final Map<String, dynamic> visit;
@@ -23,7 +24,7 @@ class VisitReportDetails extends StatelessWidget {
         backgroundColor: theme.cardColor.withValues(alpha: 0.9),
         border: null,
         middle: Text(
-          'Visit Report',
+          'Visit Report Details',
           style: theme.textTheme.bodyMedium,
         ),
       ),
@@ -70,13 +71,12 @@ class VisitReportDetails extends StatelessWidget {
                     color: theme.colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(30),
                   ),
-                  child: Center(
-                    child: Text(
-                      _getInitials(visit['clientName']),
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(30),
+                    child: ImageUtils.getPlaceholderImage(
+                      width: 60,
+                      height: 60,
+                      fit: BoxFit.cover,
                     ),
                   ),
                 ),
@@ -241,15 +241,5 @@ class VisitReportDetails extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  String _getInitials(String fullName) {
-    if (fullName.isEmpty) return '';
-
-    final nameParts = fullName.split(' ');
-    if (nameParts.length > 1) {
-      return '${nameParts[0][0]}${nameParts[1][0]}'.toUpperCase();
-    }
-    return fullName[0].toUpperCase();
   }
 }

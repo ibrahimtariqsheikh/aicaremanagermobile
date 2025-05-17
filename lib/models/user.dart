@@ -1,35 +1,36 @@
 import 'package:equatable/equatable.dart';
+import 'medication.dart';
 
 enum Role {
-  softwareOwner,
-  admin,
-  careWorker,
-  officeStaff,
-  client,
-  family,
+  SOFTWARE_OWNER,
+  ADMIN,
+  CARE_WORKER,
+  OFFICE_STAFF,
+  CLIENT,
+  FAMILY,
 }
 
 enum SubRole {
-  financeManager,
-  hrManager,
-  careManager,
-  schedulingCoordinator,
-  officeAdministrator,
-  receptionist,
-  qualityAssuranceManager,
-  marketingCoordinator,
-  complianceOfficer,
-  caregiver,
-  seniorCaregiver,
-  juniorCaregiver,
-  traineeCaregiver,
-  liveInCaregiver,
-  partTimeCaregiver,
-  specializedCaregiver,
-  nursingAssistant,
-  serviceUser,
-  familyAndFriends,
-  other,
+  FINANCE_MANAGER,
+  HR_MANAGER,
+  CARE_MANAGER,
+  SCHEDULING_COORDINATOR,
+  OFFICE_ADMINISTRATOR,
+  RECEPTIONIST,
+  QUALITY_ASSURANCE_MANAGER,
+  MARKETING_COORDINATOR,
+  COMPLIANCE_OFFICER,
+  CAREGIVER,
+  SENIOR_CAREGIVER,
+  JUNIOR_CAREGIVER,
+  TRAINEE_CAREGIVER,
+  LIVE_IN_CAREGIVER,
+  PART_TIME_CAREGIVER,
+  SPECIALIZED_CAREGIVER,
+  NURSING_ASSISTANT,
+  SERVICE_USER,
+  FAMILY_AND_FRIENDS,
+  OTHER,
 }
 
 class User extends Equatable {
@@ -59,6 +60,8 @@ class User extends Equatable {
   final String? allergies;
   final String? interests;
   final String? history;
+  final List<Medication>? medications;
+  final String? color;
 
   const User({
     required this.id,
@@ -87,6 +90,8 @@ class User extends Equatable {
     this.allergies,
     this.interests,
     this.history,
+    this.medications,
+    this.color,
   });
 
   @override
@@ -117,6 +122,8 @@ class User extends Equatable {
         allergies,
         interests,
         history,
+        medications,
+        color,
       ];
 
   @override
@@ -149,6 +156,8 @@ class User extends Equatable {
     String? allergies,
     String? interests,
     String? history,
+    List<Medication>? medications,
+    String? color,
   }) {
     return User(
       id: id ?? this.id,
@@ -177,6 +186,8 @@ class User extends Equatable {
       allergies: allergies ?? this.allergies,
       interests: interests ?? this.interests,
       history: history ?? this.history,
+      medications: medications ?? this.medications,
+      color: color ?? this.color,
     );
   }
 
@@ -186,6 +197,13 @@ class User extends Equatable {
   }
 
   factory User.fromJson(Map<String, dynamic> json) {
+    List<Medication>? medicationsList;
+    if (json['medications'] != null) {
+      medicationsList = (json['medications'] as List)
+          .map((item) => Medication.fromJson(item))
+          .toList();
+    }
+
     final user = User(
       id: json['id'] as String,
       cognitoId: json['cognitoId'] as String,
@@ -194,13 +212,13 @@ class User extends Equatable {
       preferredName: json['preferredName'] as String?,
       role: Role.values.firstWhere(
         (e) => e.toString().split('.').last.toUpperCase() == json['role'],
-        orElse: () => Role.client,
+        orElse: () => Role.CLIENT,
       ),
       subRole: json['subRole'] != null
           ? SubRole.values.firstWhere(
               (e) =>
                   e.toString().split('.').last.toUpperCase() == json['subRole'],
-              orElse: () => SubRole.other,
+              orElse: () => SubRole.OTHER,
             )
           : null,
       createdAt: DateTime.parse(json['createdAt'] as String),
@@ -224,6 +242,8 @@ class User extends Equatable {
       allergies: json['allergies'] as String?,
       interests: json['interests'] as String?,
       history: json['history'] as String?,
+      medications: medicationsList,
+      color: json['color'] as String?,
     );
 
     return user;
@@ -236,8 +256,8 @@ class User extends Equatable {
       'email': email,
       'fullName': fullName,
       'preferredName': preferredName,
-      'role': role.toString().split('.').last,
-      'subRole': subRole?.toString().split('.').last,
+      'role': role.toString().split('.').last.toUpperCase(),
+      'subRole': subRole?.toString().split('.').last.toUpperCase(),
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
       'agencyId': agencyId,
@@ -257,6 +277,8 @@ class User extends Equatable {
       'allergies': allergies,
       'interests': interests,
       'history': history,
+      'medications': medications?.map((e) => e.toJson()).toList(),
+      'color': color,
     };
   }
 }

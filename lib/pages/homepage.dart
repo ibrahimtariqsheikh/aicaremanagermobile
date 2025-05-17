@@ -1,14 +1,16 @@
 // ignore_for_file: avoid_print
 
+import 'package:aicaremanagermob/configs/app_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:aicaremanagermob/main.dart';
 import 'package:aicaremanagermob/providers/auth_provider.dart';
+import 'package:aicaremanagermob/pages/oboarding/sign_in_page.dart';
 
 import 'message.dart';
 import 'schedule.dart';
-import 'reports.dart';
+import 'reports_page.dart';
 
 import 'profile.dart';
 
@@ -36,9 +38,11 @@ class _HomePageState extends ConsumerState<HomePage> {
   void initState() {
     super.initState();
 
+    final authState = ref.read(authProvider);
+
     _pages = [
       const ProviderScope(child: SchedulePage()),
-      const ProviderScope(child: ReportsPage()),
+      ProviderScope(child: ReportsPage(userId: authState.user.id)),
       ProviderScope(child: MessagesPage()),
       const ProviderScope(child: ProfilePage()),
     ];
@@ -48,12 +52,28 @@ class _HomePageState extends ConsumerState<HomePage> {
   Widget build(BuildContext context) {
     final themeMode = ref.watch(themeProvider);
     final isDark = themeMode == ThemeMode.dark;
+    final authState = ref.watch(authProvider);
 
-    // Watch auth state
-    ref.watch(authProvider);
+    // Check if user is authenticated
+    if (authState.user.id == 'default') {
+      // User is not authenticated, redirect to sign in
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.of(context).pushAndRemoveUntil(
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                const SignInPage(),
+            transitionDuration: Duration.zero,
+            reverseTransitionDuration: Duration.zero,
+          ),
+          (route) => false,
+        );
+      });
+      return const SizedBox.shrink(); // Return empty widget while redirecting
+    }
 
     return CupertinoTabScaffold(
       tabBar: CupertinoTabBar(
+        backgroundColor: AppColors.background,
         currentIndex: _currentIndex,
         onTap: (index) {
           setState(() {
@@ -62,9 +82,6 @@ class _HomePageState extends ConsumerState<HomePage> {
         },
         activeColor: CupertinoColors.activeBlue,
         inactiveColor: CupertinoColors.systemGrey,
-        backgroundColor: isDark
-            ? CupertinoColors.darkBackgroundGray
-            : CupertinoColors.systemBackground,
         border: Border(
           top: BorderSide(
             color: isDark

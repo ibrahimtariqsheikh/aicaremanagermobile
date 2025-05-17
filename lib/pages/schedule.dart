@@ -1,3 +1,4 @@
+import 'package:aicaremanagermob/configs/app_theme.dart';
 import 'package:aicaremanagermob/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +12,7 @@ import 'dart:convert';
 import 'package:aicaremanagermob/configs/app_api_config.dart';
 import 'package:aicaremanagermob/pages/appointment_details_page.dart';
 import 'dart:async';
+import 'package:lucide_icons/lucide_icons.dart';
 
 // Schedule State
 class ScheduleState extends Equatable {
@@ -65,7 +67,6 @@ class ScheduleNotifier extends StateNotifier<ScheduleState> {
   Timer? _debounce;
 
   ScheduleNotifier(this.authState) : super(const ScheduleState()) {
-    print('ScheduleNotifier initialized');
     loadInitialSchedules();
   }
 
@@ -76,28 +77,23 @@ class ScheduleNotifier extends StateNotifier<ScheduleState> {
   }
 
   void loadInitialSchedules() {
-    print('Loading initial schedules...');
     state = state.copyWith(isLoading: true);
     loadSchedules(authState.user.id);
   }
 
   // Add a method to refresh schedules
   void refreshSchedules() {
-    print('Refreshing schedules...');
     loadInitialSchedules();
   }
 
   void addSchedule(Schedule schedule) {
-    print('Adding new schedule: ${schedule.id}');
     // Here you would typically make an API call to add the schedule
     state = state.copyWith(
       schedules: [...state.schedules, schedule],
     );
-    print('State now has ${state.schedules.length} schedules');
   }
 
   void updateSchedule(Schedule schedule) {
-    print('Updating schedule: ${schedule.id}');
     // Here you would typically make an API call to update the schedule
     state = state.copyWith(
       schedules: state.schedules
@@ -107,7 +103,6 @@ class ScheduleNotifier extends StateNotifier<ScheduleState> {
   }
 
   void deleteSchedule(String id) {
-    print('Deleting schedule: $id');
     // Here you would typically make an API call to delete the schedule
     state = state.copyWith(
       schedules: state.schedules.where((s) => s.id != id).toList(),
@@ -115,7 +110,6 @@ class ScheduleNotifier extends StateNotifier<ScheduleState> {
   }
 
   void updateScheduleStatus(String id, String status) {
-    print('Updating schedule status: $id to $status');
     state = state.copyWith(
       schedules: state.schedules.map((schedule) {
         if (schedule.id == id) {
@@ -164,7 +158,6 @@ class ScheduleNotifier extends StateNotifier<ScheduleState> {
   }
 
   Future<void> loadSchedules(String userId) async {
-    print('Loading schedules for user: $userId');
     state = state.copyWith(isLoading: true, error: null);
 
     try {
@@ -172,24 +165,18 @@ class ScheduleNotifier extends StateNotifier<ScheduleState> {
         Uri.parse(AppApiConfig.getScheduleUrl(userId)),
       );
 
-      print('Schedule API Response: ${response.body}');
-
       if (response.statusCode == 200) {
         final List<dynamic> schedulesData = json.decode(response.body);
-        print('Parsed schedules data: $schedulesData');
 
         final List<Schedule> schedules = schedulesData.map((schedule) {
-          print('Converting schedule: $schedule');
           return Schedule.fromJson(schedule);
         }).toList();
 
-        print('Converted ${schedules.length} schedules');
         state = state.copyWith(
           schedules: schedules,
           filteredSchedules: schedules,
           isLoading: false,
         );
-        print('Updated state with ${state.schedules.length} schedules');
       } else {
         state = state.copyWith(
           isLoading: false,
@@ -197,7 +184,6 @@ class ScheduleNotifier extends StateNotifier<ScheduleState> {
         );
       }
     } catch (e) {
-      print('Error loading schedules: $e');
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
@@ -250,7 +236,7 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
     final selectedDate = ref.watch(selectedDateProvider);
     final currentDate = DateTime.now();
     final scheduleState = ref.watch(scheduleNotifierProvider);
-    final authState = ref.watch(authProvider);
+    ref.watch(authProvider);
 
     // Refresh schedules when auth state changes
     ref.listen(authProvider, (previous, next) {
@@ -260,34 +246,51 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
     });
 
     return Scaffold(
-      backgroundColor: CupertinoColors.systemBackground,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: CupertinoColors.systemBackground,
+        backgroundColor: AppColors.background,
         elevation: 0,
         title: _isSearching
-            ? TextField(
-                controller: _searchController,
-                focusNode: _searchFocusNode,
-                decoration: InputDecoration(
-                  hintText: 'Search schedules...',
-                  border: InputBorder.none,
-                  hintStyle: GoogleFonts.inter(
-                    fontSize: 15,
-                    color: Colors.black54,
+            ? Container(
+                height: 36,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  focusNode: _searchFocusNode,
+                  decoration: InputDecoration(
+                    hintText: 'Search schedules...',
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                    hintStyle: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: Colors.black54,
+                    ),
+                    prefixIcon: const Icon(LucideIcons.search,
+                        size: 16, color: Colors.black54),
                   ),
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  onChanged: (value) {
+                    ref
+                        .read(scheduleNotifierProvider.notifier)
+                        .setSearchQuery(value);
+                  },
                 ),
-                style: GoogleFonts.inter(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
-                onChanged: (value) {
-                  ref
-                      .read(scheduleNotifierProvider.notifier)
-                      .setSearchQuery(value);
-                },
               )
             : Text(
-                'Upcoming Schedules',
+                'Schedules',
                 style: GoogleFonts.inter(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
@@ -296,8 +299,7 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
         actions: [
           if (_isSearching)
             IconButton(
-              icon: const Icon(CupertinoIcons.xmark,
-                  size: 20, color: Colors.black54),
+              icon: const Icon(LucideIcons.x, size: 16, color: Colors.black54),
               onPressed: () {
                 setState(() {
                   _isSearching = false;
@@ -310,8 +312,8 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
             )
           else
             IconButton(
-              icon: const Icon(CupertinoIcons.search,
-                  size: 20, color: Colors.black54),
+              icon: const Icon(LucideIcons.search,
+                  size: 16, color: Colors.black54),
               onPressed: () {
                 setState(() {
                   _isSearching = true;
@@ -324,6 +326,7 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
       body: scheduleState.isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 if (!_isSearching) ...[
                   _buildMonthHeader(context, selectedDate),
@@ -349,15 +352,16 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
   }
 
   Widget _buildMonthHeader(BuildContext context, DateTime selectedDate) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+    return Container(
+      margin: EdgeInsets.zero,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             children: [
               Text(
-                DateFormat('MMM yyyy').format(selectedDate),
+                DateFormat('MMMM yyyy').format(selectedDate),
                 style: GoogleFonts.inter(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
@@ -365,12 +369,36 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
               ),
             ],
           ),
-          Text(
-            'Today',
-            style: GoogleFonts.inter(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.blue[600],
+          GestureDetector(
+            onTap: () {
+              final today = DateTime.now();
+              ref.read(selectedDateProvider.notifier).state = today;
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.mainBlue.withValues(alpha: 0.07),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    LucideIcons.calendar,
+                    size: 16,
+                    color: AppColors.mainBlue.withValues(alpha: 0.9),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Today',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.mainBlue.withValues(alpha: 0.9),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -380,74 +408,94 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
 
   Widget _buildWeekView(BuildContext context, WidgetRef ref,
       DateTime currentDate, DateTime selectedDate) {
-    final startOfWeek =
-        currentDate.subtract(Duration(days: currentDate.weekday - 1));
+    final startDate = currentDate.subtract(const Duration(days: 5));
 
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 5),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: List.generate(7, (index) {
-              final date = startOfWeek.add(Duration(days: index));
-              final isToday = DateUtils.isSameDay(date, currentDate);
-              final isSelected = DateUtils.isSameDay(date, selectedDate);
-              final isWeekend = index >= 5;
+    return Container(
+      margin: EdgeInsets.zero,
+      child: Column(
+        children: [
+          SizedBox(
+            height: 85,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 5),
+                child: Row(
+                  children: List.generate(11, (index) {
+                    final date = startDate.add(Duration(days: index));
+                    final isToday = DateUtils.isSameDay(date, currentDate);
+                    final isSelected = DateUtils.isSameDay(date, selectedDate);
+                    final isWeekend = date.weekday == 6 || date.weekday == 7;
 
-              return GestureDetector(
-                onTap: () {
-                  ref.read(selectedDateProvider.notifier).state = date;
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? CupertinoColors.systemBlue
-                        : isToday
-                            ? const Color(0xFFF5F5F5)
-                            : Colors.transparent,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        DateFormat('E').format(date),
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
+                    return GestureDetector(
+                      onTap: () {
+                        ref.read(selectedDateProvider.notifier).state = date;
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        decoration: BoxDecoration(
                           color: isSelected
-                              ? Colors.white
+                              ? AppColors.mainBlue.withValues(alpha: 0.9)
                               : isToday
-                                  ? Colors.black54
-                                  : (isWeekend
-                                      ? Colors.black45
-                                      : Colors.black54),
-                          fontWeight: isToday || isSelected
-                              ? FontWeight.w600
-                              : FontWeight.w500,
+                                  ? const Color(0xFFF5F5F5)
+                                  : Colors.transparent,
+                          shape: BoxShape.circle,
+                          boxShadow: isSelected
+                              ? [
+                                  BoxShadow(
+                                    color: AppColors.mainBlue.withOpacity(0.15),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  )
+                                ]
+                              : null,
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              DateFormat('E').format(date),
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: isSelected
+                                    ? Colors.white
+                                    : isToday
+                                        ? Colors.black54
+                                        : (isWeekend
+                                            ? Colors.black45
+                                            : Colors.black54),
+                                fontWeight: isToday || isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              date.day.toString(),
+                              style: GoogleFonts.inter(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: isSelected
+                                    ? Colors.white
+                                    : isToday
+                                        ? Colors.black
+                                        : Colors.black,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      Text(
-                        date.day.toString(),
-                        style: GoogleFonts.inter(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: isSelected
-                              ? Colors.white
-                              : isToday
-                                  ? Colors.black
-                                  : Colors.black,
-                        ),
-                      ),
-                    ],
-                  ),
+                    );
+                  }),
                 ),
-              );
-            }),
+              ),
+            ),
           ),
-        ),
-        const Divider(height: 1, color: Colors.black12, thickness: 0.3),
-      ],
+          const Divider(height: 1, color: Colors.black12, thickness: 0.3),
+        ],
+      ),
     );
   }
 
@@ -465,31 +513,58 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
                 (schedule) => DateUtils.isSameDay(schedule.date, selectedDate))
             .toList();
 
+    // Sort schedules by start time
+    schedules.sort((a, b) => a.startTime.compareTo(b.startTime));
+
+    // Find the next upcoming appointment
+    final now = DateTime.now();
+    final currentTime =
+        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+    final nextUpcomingIndex = schedules.indexWhere((schedule) =>
+        schedule.status != 'COMPLETED' &&
+        schedule.status != 'CANCELED' &&
+        schedule.startTime.compareTo(currentTime) >= 0);
+
     if (isSearching && schedules.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              CupertinoIcons.search,
-              size: 48,
-              color: Colors.grey[400],
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                shape: BoxShape.rectangle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Icon(
+                LucideIcons.search,
+                size: 24,
+                color: Colors.grey[400],
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             Text(
               'No schedules found',
               style: GoogleFonts.inter(
-                fontSize: 16,
-                color: Colors.grey[600],
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[800],
               ),
             ),
             if (scheduleState.searchQuery.isNotEmpty) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Text(
                 'Try different keywords',
                 style: GoogleFonts.inter(
                   fontSize: 14,
-                  color: Colors.grey[500],
+                  color: Colors.grey[600],
                 ),
               ),
             ],
@@ -503,16 +578,39 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              CupertinoIcons.calendar,
-              size: 48,
-              color: Colors.grey[400],
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Icon(
+                LucideIcons.calendar,
+                size: 24,
+                color: Colors.grey[400],
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             Text(
               'No schedules for this date',
               style: GoogleFonts.inter(
-                fontSize: 16,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[800],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Select a different date or create a new schedule',
+              style: GoogleFonts.inter(
+                fontSize: 14,
                 color: Colors.grey[600],
               ),
             ),
@@ -522,44 +620,20 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
     }
 
     return ListView.builder(
+      padding: EdgeInsets.zero,
       itemCount: schedules.length,
       itemBuilder: (context, index) {
         final schedule = schedules[index];
-        return _buildScheduleItem(context, ref, schedule);
+        final isNextUpcoming = index == nextUpcomingIndex;
+        return _buildScheduleItem(context, ref, schedule,
+            isNextUpcoming: isNextUpcoming);
       },
     );
   }
 
-  Widget _buildDateHeader(BuildContext context, DateTime date, bool isToday) {
-    String dateText = DateFormat('MMM d').format(date);
-    String dayText = DateFormat('EEEE').format(date);
-
-    if (isToday) {
-      dateText += ' • Today';
-    } else if (DateUtils.isSameDay(
-        date, DateTime.now().add(const Duration(days: 1)))) {
-      dateText += ' • Tomorrow';
-    }
-
-    dateText += ' • $dayText';
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Text(
-        dateText,
-        style: GoogleFonts.inter(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-          color: Colors.grey[700],
-        ),
-      ),
-    );
-  }
-
   Widget _buildScheduleItem(
-      BuildContext context, WidgetRef ref, Schedule schedule) {
-    final status = schedule.status;
-    print('Status: $status');
+      BuildContext context, WidgetRef ref, Schedule schedule,
+      {bool isNextUpcoming = false}) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -569,115 +643,177 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
           ),
         );
       },
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  margin: const EdgeInsets.only(top: 2),
-                  width: 26,
-                  height: 26,
-                  decoration: BoxDecoration(
-                    color: _getStatusBackgroundColor(schedule.status),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    _getStatusIcon(schedule.status),
-                    size: 16,
-                    color: _getStatusColor(schedule.status),
-                  ),
+      child: Container(
+        margin: EdgeInsets.zero,
+        decoration: BoxDecoration(
+          color: isNextUpcoming ? const Color(0xFFF0F7FF) : Colors.white,
+          borderRadius: BorderRadius.zero,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+          border: isNextUpcoming
+              ? Border.all(
+                  color: AppColors.mainBlue.withValues(alpha: 0.5), width: 1)
+              : Border.all(color: AppColors.dividerLight, width: 0.5),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 2),
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: _getStatusBackgroundColor(schedule.status),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: _getStatusBackgroundColor(schedule.status)
+                          .withOpacity(0.15),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            _formatTime(schedule.startTime),
+                child: Icon(
+                  _getStatusIcon(schedule.status),
+                  size: 18,
+                  color: _getStatusColor(schedule.status),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: AppColors.cardColor,
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.02),
+                                blurRadius: 3,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            '${_formatTime(schedule.startTime)} - ${_formatTime(schedule.endTime)}',
                             style: GoogleFonts.inter(
                               fontSize: 12,
-                              color: Colors.black54,
                               fontWeight: FontWeight.w500,
+                              color: Colors.black54,
                             ),
                           ),
-                          Text(' - ',
+                        ),
+                        if (isNextUpcoming) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.mainBlue,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.mainBlue.withOpacity(0.15),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  LucideIcons.clock,
+                                  size: 12,
+                                  color: Colors.white,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Next Upcoming',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 10,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      schedule.client?.fullName ?? 'Unnamed Client',
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (schedule.client?.address != null &&
+                        schedule.client!.address!.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          const Icon(LucideIcons.mapPin,
+                              size: 14, color: Colors.black54),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              schedule.client!.address!,
                               style: GoogleFonts.inter(
                                 fontSize: 12,
                                 color: Colors.black54,
-                                fontWeight: FontWeight.w500,
-                              )),
-                          Text(
-                            _formatTime(schedule.endTime),
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              color: Colors.black54,
-                              fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
                         ],
                       ),
-                      Text(
-                        schedule.client?.fullName ?? 'Unnamed Client',
-                        style: GoogleFonts.inter(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      if (schedule.client?.address != null &&
-                          schedule.client!.address!.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            const Icon(CupertinoIcons.location,
-                                size: 14, color: Colors.black54),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: Text(
-                                schedule.client!.address!,
-                                style: GoogleFonts.inter(
-                                  fontSize: 12,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
                     ],
-                  ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: _getStatusBackgroundColor(schedule.status),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        schedule.status,
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          color: _getStatusColor(schedule.status),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
                   ],
                 ),
-              ],
-            ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: _getStatusBackgroundColor(schedule.status),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _getStatusBackgroundColor(schedule.status)
+                          .withOpacity(0.15),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  schedule.status,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: _getStatusColor(schedule.status),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const Divider(height: 1, color: Colors.black12, thickness: 0.3),
-        ],
+        ),
       ),
     );
   }
@@ -687,7 +823,7 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
       case 'CONFIRMED':
         return const Color(0xFF2196F3); // Material Blue
       case 'PENDING':
-        return const Color(0xFFFF9800); // Material Orange
+        return const Color(0xFFE65100); // Deep Orange
       case 'COMPLETED':
         return const Color(0xFF4CAF50); // Material Green
       case 'CANCELED':
@@ -702,7 +838,7 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
       case 'CONFIRMED':
         return const Color(0xFFE3F2FD); // Light Blue
       case 'PENDING':
-        return const Color(0xFFFFF3E0); // Light Orange
+        return const Color(0xFFFFECDB); // Light Orange
       case 'COMPLETED':
         return const Color(0xFFE8F5E9); // Light Green
       case 'CANCELED':
@@ -715,15 +851,15 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
   IconData _getStatusIcon(String status) {
     switch (status.toUpperCase()) {
       case 'CONFIRMED':
-        return CupertinoIcons.checkmark_circle_fill;
+        return LucideIcons.checkCircle2;
       case 'PENDING':
-        return CupertinoIcons.clock_fill;
+        return LucideIcons.clock;
       case 'COMPLETED':
-        return CupertinoIcons.checkmark_circle_fill;
+        return LucideIcons.checkCircle2;
       case 'CANCELED':
-        return CupertinoIcons.xmark_circle_fill;
+        return LucideIcons.xCircle;
       default:
-        return CupertinoIcons.circle_fill;
+        return LucideIcons.circle;
     }
   }
 
@@ -740,184 +876,7 @@ class _SchedulePageState extends ConsumerState<SchedulePage> {
 
       return '${hour12.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')} $period';
     } catch (e) {
-      print('Error formatting time: $e');
       return time;
     }
-  }
-
-  void _showAddScheduleDialog(BuildContext context, WidgetRef ref) {
-    final authState = ref.read(authProvider);
-    final titleController = TextEditingController();
-    final descriptionController = TextEditingController();
-    final selectedDate = ref.read(selectedDateProvider);
-    String? startTime;
-    String? endTime;
-    String type = 'HOME_VISIT';
-    String status = 'PENDING';
-
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: Text('Add New Schedule', style: GoogleFonts.inter()),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: titleController,
-                  decoration: const InputDecoration(
-                    labelText: 'Client ID',
-                    border: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Color(0xFFE0E0E0), width: 0.5),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Color(0xFFE0E0E0), width: 0.5),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Color(0xFF007AFF), width: 0.5),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  value: type,
-                  decoration: const InputDecoration(
-                    labelText: 'Visit Type',
-                    border: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Color(0xFFE0E0E0), width: 0.5),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Color(0xFFE0E0E0), width: 0.5),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Color(0xFF007AFF), width: 0.5),
-                    ),
-                  ),
-                  items: [
-                    'HOME_VISIT',
-                    'APPOINTMENT',
-                    'WEEKLY_CHECKUP',
-                    'CHECKUP',
-                    'EMERGENCY',
-                    'ROUTINE',
-                    'OTHER'
-                  ].map((type) {
-                    return DropdownMenuItem(
-                      value: type,
-                      child: Text(type),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() => type = value);
-                    }
-                  },
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextButton(
-                        onPressed: () async {
-                          final time = await showTimePicker(
-                            context: context,
-                            initialTime: TimeOfDay.now(),
-                          );
-                          if (time != null) {
-                            setState(() => startTime =
-                                '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}');
-                          }
-                        },
-                        child: Text(startTime ?? 'Start Time',
-                            style: GoogleFonts.inter()),
-                      ),
-                    ),
-                    Expanded(
-                      child: TextButton(
-                        onPressed: () async {
-                          final time = await showTimePicker(
-                            context: context,
-                            initialTime: TimeOfDay.now(),
-                          );
-                          if (time != null) {
-                            setState(() => endTime =
-                                '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}');
-                          }
-                        },
-                        child: Text(endTime ?? 'End Time',
-                            style: GoogleFonts.inter()),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: descriptionController,
-                  decoration: const InputDecoration(
-                    labelText: 'Notes',
-                    border: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Color(0xFFE0E0E0), width: 0.5),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Color(0xFFE0E0E0), width: 0.5),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Color(0xFF007AFF), width: 0.5),
-                    ),
-                  ),
-                  maxLines: 3,
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Cancel', style: GoogleFonts.inter()),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (titleController.text.isNotEmpty &&
-                    startTime != null &&
-                    endTime != null) {
-                  final newSchedule = Schedule(
-                    id: DateTime.now().millisecondsSinceEpoch.toString(),
-                    clientId: titleController.text,
-                    agencyId: authState.user.agencyId ?? '',
-                    userId: authState.user.id,
-                    date: selectedDate,
-                    startTime: startTime!,
-                    endTime: endTime!,
-                    status: status,
-                    type: ScheduleType.values.firstWhere(
-                      (e) => e.toApiString() == type,
-                      orElse: () => ScheduleType.homeVisit,
-                    ),
-                    notes: descriptionController.text,
-                    createdAt: DateTime.now(),
-                    updatedAt: DateTime.now(),
-                  );
-                  ref
-                      .read(scheduleNotifierProvider.notifier)
-                      .addSchedule(newSchedule);
-                  Navigator.pop(context);
-                }
-              },
-              child: Text('Add Schedule', style: GoogleFonts.inter()),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

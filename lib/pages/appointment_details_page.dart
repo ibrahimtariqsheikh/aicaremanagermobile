@@ -1,12 +1,14 @@
+import 'package:aicaremanagermob/configs/app_theme.dart';
+import 'package:aicaremanagermob/utils/image_utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:aicaremanagermob/models/schedule.dart';
 import 'package:aicaremanagermob/models/user.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:aicaremanagermob/pages/visit_checkin_page.dart';
-import 'package:aicaremanagermob/widgets/custom_card.dart';
-import 'dart:math';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class AppointmentDetailsPage extends StatefulWidget {
   final Schedule schedule;
@@ -22,57 +24,38 @@ class AppointmentDetailsPage extends StatefulWidget {
 
 class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
   int _selectedTabIndex = 0;
-  final List<String> _tabs = ['Overview', 'Client Details', 'Notes'];
+  final List<String> _tabs = ['Overview', 'Client Details', 'History'];
 
   @override
   Widget build(BuildContext context) {
     final client = widget.schedule.client;
     final formattedDate =
         DateFormat('EEEE, MMMM d, yyyy').format(widget.schedule.date);
-    final isToday = DateFormat('yyyy-MM-dd').format(widget.schedule.date) ==
-        DateFormat('yyyy-MM-dd').format(DateTime.now());
-    final theme = Theme.of(context);
+    final isToday = DateUtils.isSameDay(widget.schedule.date, DateTime.now());
 
-    return CupertinoPageScaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      navigationBar: CupertinoNavigationBar(
-        backgroundColor: theme.cardColor.withValues(alpha: 0.9),
-        border: null,
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: CupertinoNavigationBar(
+        backgroundColor: AppColors.background,
+        leading: IconButton(
+          icon: const Icon(LucideIcons.chevronLeft,
+              color: CupertinoColors.systemGrey, size: 16),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         middle: Text(
           'Appointment Details',
-          style: theme.textTheme.bodyMedium,
-        ),
-        trailing: CupertinoButton(
-          padding: EdgeInsets.zero,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(CupertinoIcons.pencil,
-                  size: 16, color: theme.colorScheme.primary),
-              const SizedBox(width: 4),
-              Text(
-                'Edit',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.primary,
-                ),
-              ),
-            ],
+          style: GoogleFonts.inter(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: Colors.black,
           ),
-          onPressed: () {
-            HapticFeedback.mediumImpact();
-          },
         ),
       ),
-      child: SafeArea(
+      body: SafeArea(
         child: Column(
           children: [
-            // Appointment Header Card
-            _buildAppointmentHeader(context, client, formattedDate, isToday),
-
-            // Tab Selector
             _buildTabSelector(),
-
-            // Tab Content
+            _buildAppointmentHeader(context, client, formattedDate, isToday),
             Expanded(
               child: CupertinoScrollbar(
                 child: SingleChildScrollView(
@@ -88,49 +71,39 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
   }
 
   Widget _buildTabSelector() {
-    final theme = Theme.of(context);
     return Container(
-      height: 50,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: List.generate(_tabs.length, (index) {
-          final isSelected = _selectedTabIndex == index;
-          return Expanded(
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _selectedTabIndex = index;
-                });
-                HapticFeedback.selectionClick();
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? theme.colorScheme.primary
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                margin: const EdgeInsets.all(4),
-                child: Center(
+      margin: const EdgeInsets.all(16),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          color: AppColors.cardColor,
+          child: CupertinoSlidingSegmentedControl<String>(
+            backgroundColor: AppColors.cardColor,
+            thumbColor: CupertinoColors.white,
+            groupValue: _tabs[_selectedTabIndex],
+            onValueChanged: (value) {
+              setState(() {
+                _selectedTabIndex = _tabs.indexOf(value ?? '');
+              });
+            },
+            children: {
+              for (var tab in _tabs)
+                tab: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Text(
-                    _tabs[index],
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: isSelected
-                          ? theme.colorScheme.surface
-                          : theme.colorScheme.onTertiary,
-                      fontWeight:
-                          isSelected ? FontWeight.w600 : FontWeight.normal,
+                    tab,
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: _selectedTabIndex == _tabs.indexOf(tab)
+                          ? CupertinoColors.black
+                          : CupertinoColors.inactiveGray,
                     ),
                   ),
                 ),
-              ),
-            ),
-          );
-        }),
+            },
+          ),
+        ),
       ),
     );
   }
@@ -142,7 +115,7 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
       case 1:
         return _buildClientDetailsTab(client);
       case 2:
-        return _buildNotesTab();
+        return _buildHistoryTab();
       default:
         return _buildOverviewTab(client);
     }
@@ -153,15 +126,12 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Client Basic Information
-        _buildSectionHeader('Client Information'),
+        _buildSectionHeader('Overview'),
         _buildClientBasicInfoCard(client),
-
-        // Action Buttons
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           child: _buildActionButtons(client),
         ),
-
         const SizedBox(height: 24),
       ],
     );
@@ -170,9 +140,15 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
   Widget _buildClientDetailsTab(User? client) {
     if (client == null) {
       return _buildCard(
-        child: const Padding(
-          padding: EdgeInsets.all(16),
-          child: Text('Client information not available'),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            'Client information not available',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: Colors.black54,
+            ),
+          ),
         ),
       );
     }
@@ -180,66 +156,53 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Personal Information
         _buildSectionHeader('Personal Information'),
         _buildPersonalInfoCard(client),
-
-        // Contact Information
         _buildSectionHeader('Contact Information'),
         _buildContactInfoCard(client),
-
-        // Medical Information
         _buildSectionHeader('Medical Information'),
         _buildMedicalInfoCard(client),
-
-        // Preferences & Notes
         _buildSectionHeader('Preferences & Background'),
         _buildPreferencesCard(client),
-
         const SizedBox(height: 24),
       ],
     );
   }
 
-  Widget _buildNotesTab() {
+  Widget _buildHistoryTab() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Appointment Notes
-        _buildSectionHeader('Appointment Notes'),
-        _buildNotesCard(),
+        // Appointment History
+        _buildSectionHeader('Appointment History'),
+        _buildHistoryCard(),
 
-        // Add Notes Button
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           child: CupertinoButton(
             padding: EdgeInsets.zero,
             onPressed: () {
-              // Handle add notes
+              // Handle add history
               HapticFeedback.mediumImpact();
             },
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 14),
               decoration: BoxDecoration(
-                color: CupertinoColors.white,
+                color: AppColors.mainBlue,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: CupertinoColors.activeBlue,
-                  width: 1,
-                ),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(CupertinoIcons.pencil,
-                      color: CupertinoColors.activeBlue, size: 18),
-                  SizedBox(width: 8),
+                  const Icon(LucideIcons.plus, color: Colors.white, size: 16),
+                  const SizedBox(width: 8),
                   Text(
-                    'Add Notes',
-                    style: TextStyle(
-                      color: CupertinoColors.activeBlue,
-                      fontWeight: FontWeight.bold,
+                    'Add History',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
@@ -253,66 +216,189 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
     );
   }
 
-  Widget _buildAppointmentHeader(
-      BuildContext context, User? client, String formattedDate, bool isToday) {
-    final theme = Theme.of(context);
-    final statusColor = _getStatusColor(widget.schedule.status);
-    final appointmentType = widget.schedule.type.toString().split('.').last;
+  Widget _buildHistoryCard() {
+    final dummyHistory = [
+      {
+        'date': 'March 15, 2024',
+        'type': 'Regular Check-up',
+        'status': 'Completed',
+        'notes':
+            'Client reported feeling better. Medication adjusted as per doctor\'s recommendation.',
+        'time': '10:00 AM - 11:00 AM',
+      },
+      {
+        'date': 'February 28, 2024',
+        'type': 'Follow-up',
+        'status': 'Completed',
+        'notes':
+            'Follow-up appointment for medication review. Client showing good progress.',
+        'time': '2:30 PM - 3:30 PM',
+      },
+      {
+        'date': 'February 15, 2024',
+        'type': 'Initial Consultation',
+        'status': 'Completed',
+        'notes': 'Initial assessment completed. Care plan established.',
+        'time': '11:00 AM - 12:00 PM',
+      },
+    ];
 
-    return CustomCard(
-      hasShadow: false,
+    return _buildCard(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Status and ID
-            Row(
-              children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    widget.schedule.status,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: statusColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  '#RSV${10000 + _getIdNumericValue(widget.schedule.id)}',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onTertiary,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            // Client info
-            Row(
-              children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: Center(
-                    child: Text(
-                      _getInitials(client?.fullName ?? 'Client'),
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.bold,
+            if (dummyHistory.isNotEmpty)
+              Column(
+                children: dummyHistory.map((history) {
+                  return Column(
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppColors.mainBlue.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              LucideIcons.history,
+                              color: AppColors.mainBlue,
+                              size: 16,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      history['type']!,
+                                      style: GoogleFonts.inter(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.green.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        history['status']!,
+                                        style: GoogleFonts.inter(
+                                          fontSize: 12,
+                                          color: Colors.green,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  history['date']!,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13,
+                                    color: Colors.black54,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  history['time']!,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13,
+                                    color: Colors.black54,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF5F5F5),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    history['notes']!,
+                                    style: GoogleFonts.inter(
+                                      fontSize: 13,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
+                      if (history != dummyHistory.last)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: Divider(
+                            color: AppColors.dividerLight,
+                            height: 1,
+                          ),
+                        ),
+                    ],
+                  );
+                }).toList(),
+              )
+            else
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Text(
+                    'No history available for this client',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: Colors.black45,
                     ),
                   ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAppointmentHeader(
+      BuildContext context, User? client, String formattedDate, bool isToday) {
+    final appointmentType = widget.schedule.type.toString().split('.').last;
+
+    return Container(
+      margin: const EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 0,
+        bottom: 4,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.dividerLight, width: 0.5),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Image.network(
+                  ImageUtils.getRandomPlaceholderImage(),
+                  width: 50,
+                  height: 50,
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -321,15 +407,17 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
                     children: [
                       Text(
                         client?.fullName ?? 'Client',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
+                        style: GoogleFonts.inter(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(height: 4),
                       Text(
                         isToday ? 'Today' : formattedDate,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onTertiary,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black54,
                         ),
                       ),
                     ],
@@ -339,14 +427,16 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    color: AppColors.cardColor,
+                    borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
-                    appointmentType,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.w600,
+                    appointmentType[0].toUpperCase() +
+                        appointmentType.substring(1),
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black54,
                     ),
                   ),
                 ),
@@ -357,16 +447,16 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
             Row(
               children: [
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: 36,
+                  height: 36,
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                    color: AppColors.cardColor,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(
-                    CupertinoIcons.clock,
-                    size: 20,
-                    color: theme.colorScheme.primary,
+                  child: const Icon(
+                    LucideIcons.clock,
+                    size: 16,
+                    color: Colors.black54,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -376,15 +466,17 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
                     children: [
                       Text(
                         'Time',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onTertiary,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: AppColors.textFaded,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 1),
                       Text(
-                        '${widget.schedule.startTime} - ${widget.schedule.endTime}',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
+                        '${_formatTime(widget.schedule.startTime)} - ${_formatTime(widget.schedule.endTime)}',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
@@ -393,8 +485,9 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
                 Text(
                   _calculateDuration(
                       widget.schedule.startTime, widget.schedule.endTime),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onTertiary,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: Colors.black54,
                   ),
                 ),
               ],
@@ -406,12 +499,12 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
   }
 
   Widget _buildSectionHeader(String title) {
-    final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
       child: Text(
         title,
-        style: theme.textTheme.titleMedium?.copyWith(
+        style: GoogleFonts.inter(
+          fontSize: 18,
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -421,8 +514,12 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
   Widget _buildCard({required Widget child}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: CustomCard(
-        hasShadow: false,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: AppColors.dividerLight, width: 0.5),
+          borderRadius: BorderRadius.circular(12),
+        ),
         child: child,
       ),
     );
@@ -431,9 +528,15 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
   Widget _buildClientBasicInfoCard(User? client) {
     if (client == null) {
       return _buildCard(
-        child: const Padding(
-          padding: EdgeInsets.all(16),
-          child: Text('Client information not available'),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            'Client information not available',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: Colors.black54,
+            ),
+          ),
         ),
       );
     }
@@ -445,19 +548,19 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildInfoRow(
-              CupertinoIcons.person,
+              LucideIcons.user,
               'Client ID',
               value: client.id,
             ),
             const SizedBox(height: 12),
             _buildInfoRow(
-              CupertinoIcons.mail,
+              LucideIcons.mail,
               'Email',
               value: client.email,
             ),
             const SizedBox(height: 12),
             _buildInfoRow(
-              CupertinoIcons.phone,
+              LucideIcons.phone,
               'Phone',
               value: client.phoneNumber ?? 'Not provided',
             ),
@@ -475,22 +578,23 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildInfoRow(
-              CupertinoIcons.person_2,
+              LucideIcons.user,
               'Full Name',
               value: client.fullName,
             ),
             const SizedBox(height: 12),
             _buildInfoRow(
-              CupertinoIcons.calendar,
+              LucideIcons.calendar,
               'Date of Birth',
-              value: client.dateOfBirth?.toString() ?? 'Not provided',
+              value: client.dateOfBirth != null
+                  ? DateFormat('MMMM d, yyyy').format(client.dateOfBirth!)
+                  : 'Not provided',
             ),
             const SizedBox(height: 12),
             _buildInfoRow(
-              CupertinoIcons.heart,
-              'Gender',
-              value:
-                  client.subRole?.toString().split('.').last ?? 'Not provided',
+              LucideIcons.badge,
+              'Role',
+              value: _formatSubRole(client.subRole?.toString().split('.').last),
             ),
           ],
         ),
@@ -506,13 +610,13 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildInfoRow(
-              CupertinoIcons.location,
+              LucideIcons.mapPin,
               'Address',
               value: client.address ?? 'Not provided',
             ),
             const SizedBox(height: 12),
             _buildInfoRow(
-              CupertinoIcons.phone,
+              LucideIcons.phone,
               'Emergency Contact',
               value: client.phoneNumber ?? 'Not provided',
             ),
@@ -530,13 +634,13 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildInfoRow(
-              CupertinoIcons.heart_circle,
+              LucideIcons.heart,
               'Medical Conditions',
               value: client.history ?? 'None reported',
             ),
             const SizedBox(height: 12),
             _buildInfoRow(
-              CupertinoIcons.exclamationmark_circle,
+              LucideIcons.alertTriangle,
               'Allergies',
               value: client.allergies ?? 'None reported',
             ),
@@ -554,13 +658,13 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildInfoRow(
-              CupertinoIcons.star,
+              LucideIcons.star,
               'Preferences',
               value: client.likesDislikes ?? 'None specified',
             ),
             const SizedBox(height: 12),
             _buildInfoRow(
-              CupertinoIcons.doc_text,
+              LucideIcons.fileText,
               'Background',
               value: client.history ?? 'None provided',
             ),
@@ -589,22 +693,21 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color:
-                              CupertinoColors.activeBlue.withValues(alpha: 0.1),
+                          color: AppColors.mainBlue.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Icon(
-                          CupertinoIcons.doc_text,
-                          color: CupertinoColors.activeBlue,
-                          size: 20,
+                          LucideIcons.fileText,
+                          color: AppColors.mainBlue,
+                          size: 16,
                         ),
                       ),
                       const SizedBox(width: 12),
-                      const Text(
+                      Text(
                         'Appointment Notes',
-                        style: TextStyle(
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
                           fontWeight: FontWeight.w600,
-                          fontSize: 16,
                         ),
                       ),
                     ],
@@ -613,13 +716,13 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: CupertinoColors.systemGrey6,
+                      color: const Color(0xFFF5F5F5),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       widget.schedule.notes!,
-                      style: const TextStyle(
-                        fontSize: 16,
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
                         height: 1.5,
                       ),
                     ),
@@ -627,13 +730,14 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
                 ],
               )
             else
-              const Center(
+              Center(
                 child: Padding(
-                  padding: EdgeInsets.all(32),
+                  padding: const EdgeInsets.all(32),
                   child: Text(
                     'No notes available for this appointment',
-                    style: TextStyle(
-                      color: CupertinoColors.systemGrey,
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: Colors.black45,
                     ),
                   ),
                 ),
@@ -645,20 +749,19 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
   }
 
   Widget _buildInfoRow(IconData icon, String label, {required String value}) {
-    final theme = Theme.of(context);
     return Row(
       children: [
         Container(
-          width: 40,
-          height: 40,
+          width: 36,
+          height: 36,
           decoration: BoxDecoration(
-            color: theme.colorScheme.primary.withValues(alpha: 0.1),
+            color: AppColors.cardColor,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
             icon,
-            size: 20,
-            color: theme.colorScheme.primary,
+            size: 16,
+            color: Colors.black54,
           ),
         ),
         const SizedBox(width: 12),
@@ -668,15 +771,17 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
             children: [
               Text(
                 label,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onTertiary,
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: AppColors.textFaded,
                 ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 1),
               Text(
                 value,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
@@ -687,38 +792,36 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
   }
 
   Widget _buildActionButtons(User? client) {
-    final theme = Theme.of(context);
     return Column(
       children: [
-        // Primary action button (confirm/cancel)
-        CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: () {
-            // Handle confirm/cancel
-            HapticFeedback.mediumImpact();
-          },
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            decoration: BoxDecoration(
-              color: widget.schedule.status == 'CONFIRMED'
-                  ? CupertinoColors.systemRed
-                  : CupertinoColors.activeGreen,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Center(
-              child: Text(
-                widget.schedule.status == 'CONFIRMED'
-                    ? 'Cancel Appointment'
-                    : 'Confirm Appointment',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: CupertinoColors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-        ),
+        // CupertinoButton(
+        //   padding: EdgeInsets.zero,
+        //   onPressed: () {
+        //     HapticFeedback.mediumImpact();
+        //   },
+        //   child: Container(
+        //     width: double.infinity,
+        //     padding: const EdgeInsets.symmetric(vertical: 14),
+        //     decoration: BoxDecoration(
+        //       color: widget.schedule.status == 'CONFIRMED'
+        //           ? const Color(0xFFE53935)
+        //           : const Color(0xFF4CAF50),
+        //       borderRadius: BorderRadius.circular(12),
+        //     ),
+        //     child: Center(
+        //       child: Text(
+        //         widget.schedule.status == 'CONFIRMED'
+        //             ? 'Cancel Appointment'
+        //             : 'Confirm Appointment',
+        //         style: GoogleFonts.inter(
+        //           fontSize: 14,
+        //           color: Colors.white,
+        //           fontWeight: FontWeight.w600,
+        //         ),
+        //       ),
+        //     ),
+        //   ),
+        // ),
 
         const SizedBox(height: 12),
 
@@ -739,20 +842,23 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 14),
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary,
+              color: AppColors.mainBlue,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(CupertinoIcons.checkmark_circle,
-                    color: theme.colorScheme.surface, size: 18),
+                const Icon(LucideIcons.checkCircle,
+                    color: Colors.white, size: 16),
                 const SizedBox(width: 8),
                 Text(
-                  'Check In',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.surface,
-                    fontWeight: FontWeight.bold,
+                  widget.schedule.hasAssignedTasks
+                      ? 'Clock in Visit'
+                      : 'Clock in Visit',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -763,46 +869,46 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
     );
   }
 
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'CONFIRMED':
-        return Colors.green;
-      case 'PENDING':
-        return Colors.orange;
-      case 'CANCELLED':
-        return Colors.red;
-      default:
-        return Colors.grey;
+  String _formatTime(String time) {
+    try {
+      final parts = time.split(':');
+      if (parts.length != 2) return time;
+
+      final hour = int.parse(parts[0]);
+      final minute = int.parse(parts[1]);
+
+      final period = hour >= 12 ? 'PM' : 'AM';
+      final hour12 = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+
+      return '${hour12.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')} $period';
+    } catch (e) {
+      return time;
     }
-  }
-
-  String _getInitials(String fullName) {
-    if (fullName.isEmpty) return '';
-
-    final nameParts = fullName.split(' ');
-    if (nameParts.length > 1) {
-      return '${nameParts[0][0]}${nameParts[1][0]}'.toUpperCase();
-    }
-    return fullName[0].toUpperCase();
-  }
-
-  int _getIdNumericValue(String id) {
-    final numericPart = id.replaceAll(RegExp(r'[^0-9]'), '');
-    if (numericPart.isEmpty) return 0;
-    return int.parse(numericPart.substring(0, min(2, numericPart.length)));
   }
 
   String _calculateDuration(String startTime, String endTime) {
-    final start = DateFormat('HH:mm').parse(startTime);
-    final end = DateFormat('HH:mm').parse(endTime);
-    final difference = end.difference(start);
+    try {
+      final start = DateFormat('HH:mm').parse(startTime);
+      final end = DateFormat('HH:mm').parse(endTime);
+      final difference = end.difference(start);
 
-    final hours = difference.inHours;
-    final minutes = difference.inMinutes % 60;
+      final hours = difference.inHours;
+      final minutes = difference.inMinutes % 60;
 
-    if (hours > 0) {
-      return '${hours}h ${minutes}m';
+      if (hours > 0) {
+        return '${hours}h ${minutes}m';
+      }
+      return '${minutes}m';
+    } catch (e) {
+      return '';
     }
-    return '${minutes}m';
+  }
+
+  String _formatSubRole(String? subRole) {
+    if (subRole == null) return 'Not provided';
+    return subRole
+        .split('_')
+        .map((word) => word[0].toUpperCase() + word.substring(1).toLowerCase())
+        .join(' ');
   }
 }

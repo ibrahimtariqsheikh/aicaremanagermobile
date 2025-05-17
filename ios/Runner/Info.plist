@@ -10,8 +10,12 @@
 	<string>Aicaremanagermob</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
-<key>NSLocalNetworkUsageDescription</key>
-<string>This app requires local network access for communication.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>This app requires local network access for communication.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs access to location when open to record check-in and check-out locations for care visits.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app needs access to location when in the background to record check-in and check-out locations for care visits.</string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>

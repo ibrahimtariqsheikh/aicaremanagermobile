@@ -1,3 +1,4 @@
+import 'package:aicaremanagermob/configs/app_theme.dart';
 import 'package:aicaremanagermob/widgets/my_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -28,17 +29,18 @@ class _SignInPageState extends ConsumerState<SignInPage> {
           );
 
       if (result == 'signedIn' && mounted) {
-        Navigator.pushReplacement(
+        Navigator.pushAndRemoveUntil(
           context,
           CupertinoPageRoute(
             builder: (context) => const HomePage(),
           ),
+          (route) => false,
         );
       }
     }
 
     return Scaffold(
-      backgroundColor: CupertinoColors.systemBackground,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),

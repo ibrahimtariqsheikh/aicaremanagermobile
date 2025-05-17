@@ -2,232 +2,463 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'reports.dart';
+import 'package:aicaremanagermob/models/report.dart';
+import 'package:aicaremanagermob/services/report_pdf_service.dart';
+import 'package:aicaremanagermob/configs/app_theme.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
-class ReportDetailsPage extends StatelessWidget {
+class ReportDetailsPage extends StatefulWidget {
   final Report report;
 
   const ReportDetailsPage({super.key, required this.report});
 
   @override
+  State<ReportDetailsPage> createState() => _ReportDetailsPageState();
+}
+
+class _ReportDetailsPageState extends State<ReportDetailsPage> {
+  bool _isSharing = false;
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
+      backgroundColor: AppColors.background,
+      appBar: CupertinoNavigationBar(
+        backgroundColor: AppColors.background,
         leading: IconButton(
-          icon: const Icon(CupertinoIcons.back, color: Colors.black54),
+          icon: const Icon(LucideIcons.chevronLeft,
+              color: CupertinoColors.systemGrey, size: 16),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
+        middle: Text(
           'Visit Report',
           style: GoogleFonts.inter(
             fontSize: 15,
             fontWeight: FontWeight.w600,
+            color: Colors.black,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(CupertinoIcons.share, color: Colors.black54),
-            onPressed: () {},
-          ),
-        ],
+        trailing: _isSharing
+            ? const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                  ),
+                ),
+              )
+            : IconButton(
+                icon: const Icon(LucideIcons.share2,
+                    color: CupertinoColors.systemGrey, size: 16),
+                onPressed: () async {
+                  setState(() {
+                    _isSharing = true;
+                  });
+
+                  try {
+                    await ReportPdfService.generateAndSharePdf(widget.report);
+                  } catch (e, stackTrace) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Error generating PDF: ${e.toString()}',
+                            style: GoogleFonts.inter(),
+                          ),
+                          backgroundColor: Colors.red,
+                          duration: const Duration(seconds: 5),
+                        ),
+                      );
+                    }
+                  } finally {
+                    if (mounted) {
+                      setState(() {
+                        _isSharing = false;
+                      });
+                    }
+                  }
+                },
+              ),
       ),
-      body: SingleChildScrollView(
+      body: SafeArea(
+        child: CupertinoScrollbar(
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildReportHeader(),
+                _buildOverviewSection(),
+                _buildVisitDetailsSection(),
+                if (widget.report.summary.isNotEmpty) _buildNotesSection(),
+                const SizedBox(height: 24),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatDuration(DateTime start, DateTime? end) {
+    final endTime = end ?? DateTime.now();
+    final difference = endTime.difference(start);
+    final hours = difference.inHours;
+    final minutes = difference.inMinutes % 60;
+
+    if (hours > 0) {
+      return '$hours hours ${minutes > 0 ? '$minutes minutes' : ''}';
+    }
+    return '$minutes minutes';
+  }
+
+  Widget _buildReportHeader() {
+    final formattedDate =
+        DateFormat('EEEE, MMMM d, yyyy').format(widget.report.checkInTime);
+    final isToday =
+        DateUtils.isSameDay(widget.report.checkInTime, DateTime.now());
+
+    return Container(
+      margin: const EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 16,
+        bottom: 4,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.dividerLight, width: 0.5),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(),
-            const Divider(height: 1, color: Colors.black12, thickness: 0.3),
-            _buildDetails(),
-            if (report.notes != null) _buildNotes(),
+            Row(
+              children: [
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: _getStatusBackgroundColor(widget.report.status),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    _getVisitTypeIcon(widget.report.visitType?.name ?? ''),
+                    size: 20,
+                    color: _getStatusColor(widget.report.status),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.report.client.fullName,
+                        style: GoogleFonts.inter(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        isToday ? 'Today' : formattedDate,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.cardColor,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    widget.report.visitType?.name ?? 'Unknown',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black54,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.cardColor,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    LucideIcons.clock,
+                    size: 16,
+                    color: Colors.black54,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Duration',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: AppColors.textFaded,
+                        ),
+                      ),
+                      const SizedBox(height: 1),
+                      Text(
+                        _formatDuration(widget.report.checkInTime,
+                            widget.report.checkOutTime),
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: _getStatusBackgroundColor(report.status),
-                  shape: BoxShape.circle,
+  Widget _buildOverviewSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('Overview'),
+        _buildCard(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildInfoRow(
+                  LucideIcons.user,
+                  'Client Name',
+                  value: widget.report.client.fullName,
                 ),
-                child: Icon(
-                  _getVisitTypeIcon(report.visitType),
-                  size: 20,
-                  color: _getStatusColor(report.status),
+                const SizedBox(height: 12),
+                _buildInfoRow(
+                  LucideIcons.calendar,
+                  'Date',
+                  value: DateFormat('MMMM d, yyyy')
+                      .format(widget.report.checkInTime),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(height: 12),
+                _buildInfoRow(
+                  LucideIcons.clock,
+                  'Duration',
+                  value: _formatDuration(
+                      widget.report.checkInTime, widget.report.checkOutTime),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVisitDetailsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('Visit Details'),
+        _buildCard(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildInfoRow(
+                  LucideIcons.mapPin,
+                  'Location',
+                  value: widget.report.checkInLocation ?? 'Not provided',
+                ),
+                const SizedBox(height: 12),
+                _buildInfoRow(
+                  LucideIcons.tag,
+                  'Status',
+                  value: widget.report.status,
+                ),
+                const SizedBox(height: 12),
+                _buildInfoRow(
+                  LucideIcons.clipboardList,
+                  'Visit Type',
+                  value: widget.report.visitType?.name ?? 'Unknown',
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNotesSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('Notes'),
+        _buildCard(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Text(
-                      report.clientName,
-                      style: GoogleFonts.inter(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.mainBlue.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        LucideIcons.fileText,
+                        color: AppColors.mainBlue,
+                        size: 16,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(width: 12),
                     Text(
-                      DateFormat('EEEE, MMMM d, yyyy').format(report.date),
+                      'Visit Notes',
                       style: GoogleFonts.inter(
-                        fontSize: 14,
-                        color: Colors.black54,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
                 ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F5F5),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    widget.report.summary,
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      height: 1.5,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+      child: Text(
+        title,
+        style: GoogleFonts.inter(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCard({required Widget child}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: AppColors.dividerLight, width: 0.5),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: child,
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String label, {required String value}) {
+    return Row(
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: AppColors.cardColor,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            icon,
+            size: 16,
+            color: Colors.black54,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: AppColors.textFaded,
+                ),
+              ),
+              const SizedBox(height: 1),
+              Text(
+                value,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: _getStatusBackgroundColor(report.status),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              _formatVisitType(report.visitType),
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: _getStatusColor(report.status),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
-  }
-
-  Widget _buildDetails() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Visit Details',
-            style: GoogleFonts.inter(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildDetailRow('Duration', report.duration),
-          if (report.address != null)
-            _buildDetailRow('Location', report.address!),
-          _buildDetailRow('Status', report.status),
-          _buildDetailRow('Visit Type', _formatVisitType(report.visitType)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 100,
-            child: Text(
-              label,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: Colors.black54,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNotes() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Notes',
-            style: GoogleFonts.inter(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.grey[50],
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey[200]!),
-            ),
-            child: Text(
-              report.notes!,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                height: 1.5,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _formatVisitType(String visitType) {
-    return visitType
-        .replaceAll('_', ' ')
-        .split(' ')
-        .map((word) => word[0].toUpperCase() + word.substring(1).toLowerCase())
-        .join(' ');
   }
 
   IconData _getVisitTypeIcon(String visitType) {
     switch (visitType.toUpperCase()) {
       case 'HOME_VISIT':
-        return CupertinoIcons.home;
+        return LucideIcons.home;
       case 'APPOINTMENT':
-        return CupertinoIcons.calendar;
+        return LucideIcons.calendar;
       case 'WEEKLY_CHECKUP':
-        return CupertinoIcons.chart_bar;
+        return LucideIcons.barChart2;
       case 'CHECKUP':
-        return CupertinoIcons.doc_checkmark;
+        return LucideIcons.clipboardCheck;
       case 'EMERGENCY':
-        return CupertinoIcons.exclamationmark_triangle;
+        return LucideIcons.alertTriangle;
       case 'ROUTINE':
-        return CupertinoIcons.repeat;
+        return LucideIcons.repeat;
       default:
-        return CupertinoIcons.doc_text;
+        return LucideIcons.fileText;
     }
   }
 

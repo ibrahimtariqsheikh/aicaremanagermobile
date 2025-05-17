@@ -17,7 +17,7 @@ class IconBackground extends StatelessWidget {
       borderRadius: BorderRadius.circular(6),
       child: InkWell(
         borderRadius: BorderRadius.circular(6),
-        splashColor: AppColors.secondary,
+        splashColor: AppColors.mainBlue,
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(6),
@@ -45,7 +45,7 @@ class IconBorder extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: BorderRadius.circular(6),
-      splashColor: AppColors.secondary,
+      splashColor: AppColors.mainBlue,
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(

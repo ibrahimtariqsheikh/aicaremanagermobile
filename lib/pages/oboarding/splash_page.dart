@@ -49,10 +49,11 @@ class _SplashPageState extends State<SplashPage>
     _controller.forward().then((_) {
       Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted) {
-          Navigator.of(context).pushReplacement(
+          Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(
               builder: (context) => const SignInPage(),
             ),
+            (route) => false,
           );
         }
       });

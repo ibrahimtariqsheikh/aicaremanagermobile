@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'user.dart';
+import 'visit_type.dart';
 
 enum ScheduleType {
   weeklyCheckup,
@@ -44,6 +45,7 @@ class Schedule extends Equatable {
   final DateTime updatedAt;
   final String? visitTypeId;
   final User? client;
+  final VisitType? visitType;
 
   const Schedule({
     required this.id,
@@ -61,6 +63,7 @@ class Schedule extends Equatable {
     required this.updatedAt,
     this.visitTypeId,
     this.client,
+    this.visitType,
   });
 
   @override
@@ -80,10 +83,26 @@ class Schedule extends Equatable {
         updatedAt,
         visitTypeId,
         client,
+        visitType,
       ];
 
   factory Schedule.fromJson(Map<String, dynamic> json) {
     print('Creating Schedule from JSON: $json');
+
+    // Handle potential null or different types for chargeRate
+    double? chargeRateValue;
+    if (json['chargeRate'] != null) {
+      if (json['chargeRate'] is num) {
+        chargeRateValue = (json['chargeRate'] as num).toDouble();
+      } else if (json['chargeRate'] is String) {
+        try {
+          chargeRateValue = double.parse(json['chargeRate'] as String);
+        } catch (e) {
+          print('Error parsing chargeRate: $e');
+        }
+      }
+    }
+
     return Schedule(
       id: json['id'] as String,
       agencyId: json['agencyId'] as String,
@@ -95,13 +114,14 @@ class Schedule extends Equatable {
       status: json['status'] as String,
       type: ScheduleType.fromString(json['type'] as String),
       notes: json['notes'] as String?,
-      chargeRate: json['chargeRate'] != null
-          ? (json['chargeRate'] as num).toDouble()
-          : null,
+      chargeRate: chargeRateValue,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
       visitTypeId: json['visitTypeId'] as String?,
       client: json['client'] != null ? User.fromJson(json['client']) : null,
+      visitType: json['visitType'] != null
+          ? VisitType.fromJson(json['visitType'])
+          : null,
     );
   }
 
@@ -122,6 +142,7 @@ class Schedule extends Equatable {
       'updatedAt': updatedAt.toIso8601String(),
       'visitTypeId': visitTypeId,
       'client': client?.toJson(),
+      'visitType': visitType?.toJson(),
     };
   }
 
@@ -141,6 +162,7 @@ class Schedule extends Equatable {
     DateTime? updatedAt,
     String? visitTypeId,
     User? client,
+    VisitType? visitType,
   }) {
     return Schedule(
       id: id ?? this.id,
@@ -158,6 +180,22 @@ class Schedule extends Equatable {
       updatedAt: updatedAt ?? this.updatedAt,
       visitTypeId: visitTypeId ?? this.visitTypeId,
       client: client ?? this.client,
+      visitType: visitType ?? this.visitType,
     );
   }
+
+  // Helper method to get assigned tasks for this schedule
+  List<AssignedTask>? get assignedTasks => visitType?.assignedTasks;
+
+  // Helper method to check if this schedule has a valid visitType with tasks
+  bool get hasAssignedTasks =>
+      visitType != null &&
+      visitType!.assignedTasks != null &&
+      visitType!.assignedTasks!.isNotEmpty;
+
+  // Helper method to check if this schedule has medications
+  bool get hasMedications =>
+      client != null &&
+      client!.medications != null &&
+      client!.medications!.isNotEmpty;
 }

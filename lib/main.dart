@@ -11,6 +11,8 @@ import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:aicaremanagermob/providers/auth_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:aicaremanagermob/pages/reports_page.dart';
 
 // Theme provider for managing theme state
 final themeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
@@ -58,6 +60,7 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeProvider);
     final isDark = themeMode == ThemeMode.dark;
+    final authState = ref.watch(authProvider);
 
     return MaterialApp(
       title: 'AICare Manager',
@@ -79,7 +82,64 @@ class MyApp extends ConsumerWidget {
           child: child!,
         );
       },
-      home: const SplashPage(),
+      home: Builder(
+        builder: (context) {
+          return GestureDetector(
+            onTap: () {
+              FocusScopeNode currentFocus = FocusScope.of(context);
+              if (!currentFocus.hasPrimaryFocus &&
+                  currentFocus.focusedChild != null) {
+                FocusManager.instance.primaryFocus?.unfocus();
+              }
+            },
+            child: const SplashPage(),
+          );
+        },
+      ),
+      routes: {
+        '/reports': (context) => ReportsPage(userId: authState.user.id),
+      },
+    );
+  }
+}
+
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    // Demo user ID - in a real app, this would come from authentication
+    const String userId = "cm9n1ok5x00038ohc8boavle3";
+
+    return CupertinoPageScaffold(
+      navigationBar: const CupertinoNavigationBar(
+        middle: Text('AI Care Manager'),
+      ),
+      child: SafeArea(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'Welcome to AI Care Manager',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+              CupertinoButton.filled(
+                child: const Text('View Reports'),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    CupertinoPageRoute(
+                      builder: (context) => const ReportsPage(userId: userId),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

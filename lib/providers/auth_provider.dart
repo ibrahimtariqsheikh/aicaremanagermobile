@@ -15,7 +15,7 @@ final _defaultUser = User(
   cognitoId: 'default',
   email: 'default@example.com',
   fullName: 'Guest User',
-  role: Role.client,
+  role: Role.CLIENT,
   createdAt: DateTime.now(),
   updatedAt: DateTime.now(),
 );

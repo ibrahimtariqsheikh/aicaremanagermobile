@@ -1,11 +1,13 @@
+import 'package:aicaremanagermob/configs/app_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:aicaremanagermob/main.dart';
 import 'package:aicaremanagermob/providers/auth_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:aicaremanagermob/pages/oboarding/sign_in_page.dart';
+import 'package:aicaremanagermob/utils/image_utils.dart';
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
@@ -15,16 +17,9 @@ class ProfilePage extends ConsumerWidget {
     final themeMode = ref.watch(themeProvider);
     final theme = Theme.of(context);
 
-    return defaultTargetPlatform == TargetPlatform.iOS
-        ? _buildIOSProfile(context, ref, themeMode, theme)
-        : _buildAndroidProfile(context, ref, themeMode, theme);
-  }
-
-  Widget _buildIOSProfile(BuildContext context, WidgetRef ref,
-      ThemeMode themeMode, ThemeData theme) {
     return CupertinoPageScaffold(
+      backgroundColor: AppColors.background,
       navigationBar: CupertinoNavigationBar(
-        backgroundColor: CupertinoColors.systemBackground,
         middle: Text(
           'Profile',
           style: GoogleFonts.inter(
@@ -33,57 +28,33 @@ class ProfilePage extends ConsumerWidget {
             decoration: TextDecoration.none,
           ),
         ),
-        trailing: CupertinoButton(
-          padding: EdgeInsets.zero,
-          child: Icon(LucideIcons.settings, color: theme.iconTheme.color),
-          onPressed: () {
-            // Settings action
-          },
-        ),
       ),
       child: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            _buildProfileHeader(ref, theme),
-            _buildPersonalInfoSection(ref, theme),
-            _buildSettingsSection(ref, themeMode, theme),
-            _buildLogoutSection(ref, theme),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAndroidProfile(BuildContext context, WidgetRef ref,
-      ThemeMode themeMode, ThemeData theme) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: Text(
-          'Profile',
-          style: GoogleFonts.inter(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(LucideIcons.settings, color: theme.iconTheme.color),
-            onPressed: () {
-              // Settings action
-            },
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
+        child: Stack(
           children: [
-            _buildProfileHeader(ref, theme),
-            _buildPersonalInfoSectionAndroid(ref, theme),
-            _buildHealthInfoSectionAndroid(ref, theme),
-            _buildSettingsSectionAndroid(ref, themeMode, theme),
-            _buildLogoutSectionAndroid(ref, theme),
+            CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(
+                  child: _buildProfileHeader(ref, theme),
+                ),
+                SliverToBoxAdapter(
+                  child: _buildPersonalInfoSection(ref, theme),
+                ),
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: 80),
+                ),
+              ],
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 16,
+              child: Container(
+                color: AppColors.background,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: _buildLogoutSection(ref, theme),
+              ),
+            ),
           ],
         ),
       ),
@@ -93,40 +64,62 @@ class ProfilePage extends ConsumerWidget {
   Widget _buildProfileHeader(WidgetRef ref, ThemeData theme) {
     final user = ref.watch(authProvider).user;
 
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            CircleAvatar(
-              radius: 30,
-              backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
-              child: Icon(
-                LucideIcons.user,
-                size: 20,
-                color: theme.colorScheme.primary,
+    return Container(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        children: [
+          Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(50),
+              border: Border.all(
+                color: AppColors.mainBlue.withOpacity(0.1),
+                width: 2,
               ),
             ),
-            const SizedBox(height: 16),
-            Text(
-              user.fullName,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: CupertinoColors.label,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(50),
+              child: Image.network(
+                ImageUtils.getRandomPlaceholderImage(),
+                fit: BoxFit.cover,
               ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              user.email,
-              style: const TextStyle(
-                fontSize: 14,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            user.fullName,
+            style: GoogleFonts.inter(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            user.email,
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.mainBlue.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              user.role.toString().split('.').last,
+              style: GoogleFonts.inter(
+                fontSize: 12,
                 fontWeight: FontWeight.w500,
-                color: CupertinoColors.inactiveGray,
+                color: AppColors.mainBlue,
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -134,310 +127,136 @@ class ProfilePage extends ConsumerWidget {
   Widget _buildPersonalInfoSection(WidgetRef ref, ThemeData theme) {
     final user = ref.watch(authProvider).user;
 
-    return SliverToBoxAdapter(
-      child: CupertinoListSection.insetGrouped(
-        header: const Text(
-          'Personal Information',
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: CupertinoColors.label,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
+          child: Text(
+            'Personal Information',
+            style: GoogleFonts.inter(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.black,
+            ),
           ),
         ),
-        margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 16),
-        backgroundColor: theme.scaffoldBackgroundColor,
-        children: [
-          _buildInfoItem('Role', user.role.toString().split('.').last, theme),
-          _buildInfoItem(
-              'Sub Role', user.subRole?.toString().split('.').last, theme),
-          _buildInfoItem('Phone', user.phoneNumber, theme),
-          _buildInfoItem('Address',
-              '${user.address}, ${user.city}, ${user.province}', theme),
-          _buildInfoItem('Postal Code', user.postalCode, theme),
-          _buildInfoItem(
-              'Date of Birth', user.dateOfBirth?.toIso8601String(), theme),
-          _buildInfoItem('Languages', user.languages, theme),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSettingsSection(
-      WidgetRef ref, ThemeMode themeMode, ThemeData theme) {
-    return SliverToBoxAdapter(
-      child: CupertinoListSection.insetGrouped(
-        header: const Text(
-          'Settings',
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: CupertinoColors.label,
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.dividerLight, width: 0.5),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildInfoItem(
+                  'Phone', user.phoneNumber, LucideIcons.phone, theme),
+              _buildInfoItem(
+                  'Address',
+                  '${user.address}, ${user.city}, ${user.province}',
+                  LucideIcons.mapPin,
+                  theme),
+              _buildInfoItem(
+                  'Postal Code', user.postalCode, LucideIcons.mail, theme),
+              _buildInfoItem(
+                  'Date of Birth',
+                  user.dateOfBirth?.toIso8601String(),
+                  LucideIcons.calendar,
+                  theme),
+              _buildInfoItem(
+                  'Languages', user.languages, LucideIcons.languages, theme),
+            ],
           ),
         ),
-        margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 16),
-        backgroundColor: theme.scaffoldBackgroundColor,
-        children: [
-          _buildActionItem('Edit Profile', LucideIcons.user, theme),
-          _buildActionItem('Change Password', LucideIcons.lock, theme),
-        ],
-      ),
+      ],
     );
   }
 
   Widget _buildLogoutSection(WidgetRef ref, ThemeData theme) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-        child: CupertinoButton(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          color: CupertinoColors.activeBlue,
-          borderRadius: BorderRadius.circular(8),
-          child: Text(
-            'Log Out',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: CupertinoColors.white,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          onPressed: () {
-            // Handle logout
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoItem(String title, String? value, ThemeData theme) {
-    return CupertinoListTile(
-      title: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
-          color: CupertinoColors.label,
-        ),
-      ),
-      trailing: Text(
-        value ?? 'Not specified',
-        style: const TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
-          color: CupertinoColors.inactiveGray,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionItem(String title, IconData icon, ThemeData theme) {
-    return CupertinoListTile(
-      leading: Icon(
-        icon,
-        size: 15,
-        color: theme.colorScheme.primary,
-      ),
-      title: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
-          color: CupertinoColors.label,
-        ),
-      ),
-      trailing: const CupertinoListTileChevron(),
-      onTap: () {},
-    );
-  }
-
-  Widget _buildPersonalInfoSectionAndroid(WidgetRef ref, ThemeData theme) {
-    final user = ref.watch(authProvider).user;
-
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return CupertinoButton(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      color: AppColors.mainBlue,
+      borderRadius: BorderRadius.circular(12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              'Personal Information',
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: theme.textTheme.titleLarge?.color,
-              ),
-            ),
-          ),
-          const Divider(height: 1),
-          _buildInfoItemAndroid(
-              'Role', user.role.toString().split('.').last, theme),
-          _buildInfoItemAndroid(
-              'Sub Role', user.subRole?.toString().split('.').last, theme),
-          _buildInfoItemAndroid('Phone', user.phoneNumber, theme),
-          _buildInfoItemAndroid('Address',
-              '${user.address}, ${user.city}, ${user.province}', theme),
-          _buildInfoItemAndroid('Postal Code', user.postalCode, theme),
-          _buildInfoItemAndroid(
-              'Date of Birth', user.dateOfBirth?.toIso8601String(), theme),
-          _buildInfoItemAndroid('Languages', user.languages, theme),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHealthInfoSectionAndroid(WidgetRef ref, ThemeData theme) {
-    final user = ref.watch(authProvider).user;
-
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              'Health Information',
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: theme.textTheme.titleLarge?.color,
-              ),
-            ),
-          ),
-          const Divider(height: 1),
-          _buildInfoItemAndroid('NHS Number', user.nhsNumber, theme),
-          _buildInfoItemAndroid('Mobility', user.mobility, theme),
-          _buildInfoItemAndroid('Allergies', user.allergies, theme),
-          _buildInfoItemAndroid('Likes/Dislikes', user.likesDislikes, theme),
-          _buildInfoItemAndroid('Interests', user.interests, theme),
-          _buildInfoItemAndroid('History', user.history, theme),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSettingsSectionAndroid(
-      WidgetRef ref, ThemeMode themeMode, ThemeData theme) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              'Settings',
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: theme.textTheme.titleLarge?.color,
-              ),
-            ),
-          ),
-          const Divider(height: 1),
-          _buildActionItemAndroid('Edit Profile', LucideIcons.user, theme),
-          _buildActionItemAndroid('Change Password', LucideIcons.lock, theme),
-          _buildThemeSwitcherAndroid(ref, themeMode, theme),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLogoutSectionAndroid(WidgetRef ref, ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: theme.colorScheme.primary,
-          minimumSize: const Size(double.infinity, 48),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-        onPressed: () {
-          // Handle logout
-        },
-        child: Text(
-          'Log Out',
-          style: theme.textTheme.bodyMedium?.copyWith(
+          Icon(
+            LucideIcons.logOut,
+            size: 16,
             color: Colors.white,
-            fontWeight: FontWeight.w600,
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoItemAndroid(String title, String? value, ThemeData theme) {
-    return ListTile(
-      title: Text(
-        title,
-        style: TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
-          color: theme.textTheme.bodyLarge?.color,
-        ),
-      ),
-      trailing: Text(
-        value ?? 'Not specified',
-        style: TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
-          color: theme.textTheme.bodyMedium?.color,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildThemeSwitcherAndroid(
-      WidgetRef ref, ThemeMode themeMode, ThemeData theme) {
-    return ListTile(
-      leading: Icon(
-        themeMode == ThemeMode.dark ? LucideIcons.moon : LucideIcons.sun,
-        color: theme.colorScheme.primary,
-        size: 20,
-      ),
-      title: Text(
-        'Theme',
-        style: TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
-          color: theme.textTheme.bodyLarge?.color,
-        ),
-      ),
-      trailing: TextButton(
-        onPressed: () {
-          ref.read(themeProvider.notifier).state =
-              themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
-        },
-        child: Text(
-          themeMode == ThemeMode.dark ? 'Dark' : 'Light',
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w500,
-            color: theme.colorScheme.primary,
+          const SizedBox(width: 8),
+          Text(
+            'Log Out',
+            style: GoogleFonts.inter(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
           ),
-        ),
+        ],
       ),
+      onPressed: () {
+        ref.read(authProvider.notifier).signOut();
+        Navigator.of(ref.context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (context) => const SignInPage(),
+            fullscreenDialog: true,
+            maintainState: false,
+          ),
+          (route) => false,
+        );
+      },
     );
   }
 
-  Widget _buildActionItemAndroid(String title, IconData icon, ThemeData theme) {
-    return ListTile(
-      leading: Icon(
-        icon,
-        size: 20,
-        color: theme.colorScheme.primary,
+  Widget _buildInfoItem(
+      String title, String? value, IconData icon, ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: AppColors.cardColor,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              icon,
+              size: 16,
+              color: Colors.black54,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: Colors.black54,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value ?? 'Not specified',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
-      title: Text(
-        title,
-        style: TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
-          color: theme.textTheme.bodyLarge?.color,
-        ),
-      ),
-      trailing: const Icon(Icons.chevron_right),
-      onTap: () {},
     );
   }
 }
